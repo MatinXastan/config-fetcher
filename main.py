@@ -8,67 +8,63 @@ def fetch_and_decode_content(url):
     محتوای یک URL را دریافت کرده و اگر با Base64 کد شده باشد، آن را دیکود می‌کند.
     """
     try:
-        # درخواست GET به URL با یک مهلت زمانی ۱۰ ثانیه‌ای
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # اگر خطایی (مثل 404 یا 500) رخ دهد، برنامه متوقف می‌شود
-
+        response.raise_for_status()
         content = response.text
-        
-        # تلاش برای دیکود کردن محتوا از Base64
-        # اکثر لینک‌های اشتراک کانفیگ به صورت Base64 هستند
         try:
-            # حذف فاصله‌ها و خطوط جدید اضافی از ابتدا و انتهای محتوا
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
-            # محتوای دیکود شده را بر اساس خطوط جدید به لیستی از کانفیگ‌ها تبدیل می‌کند
             return decoded_content.strip().split('\n')
         except Exception:
-            # اگر محتوا Base64 نبود، همان را به صورت خط به خط برمی‌گردانیم
             return content.strip().split('\n')
-            
     except requests.exceptions.RequestException as e:
-        print(f"خطا در دریافت اطلاعات از {url}: {e}")
-        return [] # در صورت بروز خطا، یک لیست خالی برمی‌گرداند
+        print(f"Error fetching from {url}: {e}")
+        return []
 
 def main():
     """
     تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند.
     """
-    # خواندن لیست URL ها از GitHub Secrets که به عنوان متغیر محیطی (environment variable) به اسکریپت داده شده
+    # خواندن لیست URL ها از GitHub Secrets
     urls_str = os.environ.get('CONFIG_URLS')
     if not urls_str:
-        print("متغیر CONFIG_URLS پیدا نشد یا خالی است. لطفا سکرت‌های ریپازیتوری را بررسی کنید.")
+        print("CONFIG_URLS secret not found or is empty. Please check repository secrets.")
         return
 
     urls = urls_str.strip().split('\n')
     all_configs = []
 
-    print(f"شروع پردازش {len(urls)} لینک...")
+    print(f"Processing {len(urls)} URLs...")
 
     for url in urls:
-        if url.strip(): # اطمینان از اینکه لینک خالی یا فقط حاوی فاصله نیست
-            print(f"در حال استخراج از: {url.strip()}")
+        if url.strip():
+            print(f"Fetching from: {url.strip()}")
             configs = fetch_and_decode_content(url.strip())
             if configs:
-                # اضافه کردن کانفیگ‌های جدید به لیست کلی
                 all_configs.extend(configs)
-                print(f"-> تعداد {len(configs)} کانفیگ از این لینک پیدا شد.")
+                print(f"-> Found {len(configs)} lines from this URL.")
 
-    # برای حذف کانفیگ‌های تکراری و حفظ ترتیب آن‌ها، از دیکشنری استفاده می‌کنیم
-    unique_configs = list(dict.fromkeys(filter(None, all_configs))) # filter(None, ...) کانفیگ‌های خالی را حذف می‌کند
+    # --- بخش بهبود یافته برای فیلتر کردن ---
+    # ۱. ابتدا خطوط خالی را حذف می‌کنیم
+    all_configs = list(filter(None, all_configs)) 
+
+    # ۲. فقط خطوطی که با پروتکل‌های معتبر شروع می‌شوند را نگه می‌داریم
+    valid_protocols = ('vless://', 'vmess://', 'ss://', 'trojan://', 'tuic://')
+    valid_configs = [c for c in all_configs if c.strip().startswith(valid_protocols)]
+
+    # ۳. حالا از بین کانفیگ‌های معتبر، تکراری‌ها را حذف می‌کنیم
+    unique_configs = list(dict.fromkeys(valid_configs))
+    # --- پایان بخش بهبود یافته ---
     
     if unique_configs:
-        # نام فایل خروجی
         output_filename = 'v2ray_configs.txt'
-        # ذخیره تمام کانفیگ‌های منحصر به فرد در فایل خروجی
         with open(output_filename, 'w', encoding='utf-8') as f:
             for config in unique_configs:
                 f.write(config + '\n')
         
-        print("\n✅ عملیات با موفقیت انجام شد.")
-        print(f"تعداد کل کانفیگ‌های منحصر به فرد: {len(unique_configs)}")
-        print(f"فایل خروجی در '{output_filename}' ذخیره شد.")
+        print(f"\n✅ Success! Found {len(unique_configs)} unique and valid configs.")
+        print(f"Output saved to '{output_filename}'.")
     else:
-        print("\n⚠️ هیچ کانفیگی برای ذخیره کردن پیدا نشد.")
+        print("\n⚠️ No valid configs found to save.")
 
 if __name__ == "__main__":
     main()
