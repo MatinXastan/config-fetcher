@@ -56,7 +56,7 @@ def get_remark_from_config(config):
     remark = ''
     try:
         if '#' in config:
-            remark += " " + unquote(config.split('#')[-1])
+            remark += " " + unquote(config.split('#', 1)[-1])
         
         if config.startswith('vmess://'):
             b64_part = config[8:]
@@ -73,7 +73,7 @@ def find_country(remark):
     # اولویت اول: جستجوی ایموجی‌ها
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
-            if len(alias) > 2 and not alias.isalpha(): # Heuristic for emojis
+            if not alias.isalpha() and len(alias) > 1: # Heuristic for emojis
                 if alias in remark:
                     return country_name
     
@@ -92,6 +92,17 @@ def find_country(remark):
                 if re.search(pattern, remark, re.IGNORECASE):
                     return country_name
     return None
+
+def remove_duplicates(configs):
+    """کانفیگ‌های تکراری را با نادیده گرفتن بخش توضیحات حذف می‌کند."""
+    seen = set()
+    unique_list = []
+    for config in configs:
+        base_config = config.split('#', 1)[0]
+        if base_config not in seen:
+            seen.add(base_config)
+            unique_list.append(config)
+    return unique_list
 
 def main():
     """تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند."""
@@ -113,7 +124,9 @@ def main():
 
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
-    unique_configs = list(dict.fromkeys(initial_valid_configs))
+    
+    # --- حذف هوشمند تکراری‌ها ---
+    unique_configs = remove_duplicates(initial_valid_configs)
     
     print(f"\nFound {len(unique_configs)} unique configs. Now sorting...")
 
@@ -145,13 +158,13 @@ def main():
     
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)):
+            for config in configs: # Already unique
                 f.write(config + '\n')
     
     for country, configs in by_country.items():
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-                for config in list(dict.fromkeys(configs)):
+                for config in configs: # Already unique
                     f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
