@@ -1,58 +1,48 @@
-# نام ورک‌فلو
-name: Fetch and Commit V2Ray Configs
+name: Fetch and Sort V2Ray Configs
 
 on:
-  # اجرای خودکار هر ۶ ساعت یک‌بار
   schedule:
     - cron: '0 */6 * * *'
-  
-  # امکان اجرای دستی از طریق تب Actions
   workflow_dispatch:
 
 jobs:
   build-and-commit:
     runs-on: ubuntu-latest
-
-    # --- بخش اضافه شده برای حل مشکل ---
-    # این بخش به اکشن اجازه می‌دهد تا در ریپازیتوری کامیت کند
     permissions:
       contents: write
-    # --- پایان بخش اضافه شده ---
 
     steps:
-      # مرحله ۱: دانلود کد ریپازیتوری
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # مرحله ۲: نصب پایتون
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # مرحله ۳: نصب کتابخانه‌های مورد نیاز
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests
 
-      # مرحله ۴: اجرای اسکریپت پایتون برای ساخت فایل کانفیگ
-      - name: Run Python script to fetch configs
+      - name: Run Python script to fetch and sort configs
         env:
           CONFIG_URLS: ${{ secrets.CONFIG_URLS }}
         run: python main.py
 
-      # مرحله ۵: کامیت و پوش کردن فایل جدید در همین ریپازیتوری
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add v2ray_configs.txt
-          # فقط در صورتی کامیت کن که تغییری وجود داشته باشد
+          
+          # --- تغییر مهم در این بخش ---
+          # به جای یک فایل، تمام تغییرات را اضافه می‌کند
+          git add .
+          
           if ! git diff --staged --quiet; then
-            git commit -m "Update configs [$(date)]"
+            git commit -m "Update and sort configs [$(date)]"
             git push
-            echo "✅ New configs committed and pushed."
+            echo "✅ New configs sorted and pushed."
           else
             echo "ℹ️ No changes to commit."
           fi
