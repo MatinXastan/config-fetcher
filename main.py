@@ -5,35 +5,36 @@ import re
 import json
 import shutil
 from collections import defaultdict
+from urllib.parse import unquote
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
-# اولویت با کدهای طولانی‌تر و خاص‌تر است تا از تشخیص اشتباه جلوگیری شود
-COUNTRY_MAP = {
-    "Germany": "Germany", "Deutschland": "Germany", "DE": "Germany", "🇩🇪": "Germany",
-    "United States": "USA", "USA": "USA", "US": "USA", "🇺🇸": "USA",
-    "Netherlands": "Netherlands", "NL": "Netherlands", "🇳🇱": "Netherlands",
-    "France": "France", "FR": "France", "🇫🇷": "France",
-    "United Kingdom": "UK", "UK": "UK", "GB": "UK", "🇬🇧": "UK",
-    "Canada": "Canada", "CA": "Canada", "🇨🇦": "Canada",
-    "Japan": "Japan", "JP": "Japan", "🇯🇵": "Japan",
-    "Singapore": "Singapore", "SG": "Singapore", "🇸🇬": "Singapore",
-    "Finland": "Finland", "FI": "Finland", "🇫🇮": "Finland",
-    "Iran": "Iran", "IR": "Iran", "🇮🇷": "Iran",
-    "Turkey": "Turkey", "TR": "Turkey", "🇹🇷": "Turkey",
-    "Russia": "Russia", "RU": "Russia", "🇷🇺": "Russia",
-    "Austria": "Austria", "AT": "Austria", "🇦🇹": "Austria",
-    "Poland": "Poland", "PL": "Poland", "🇵🇱": "Poland",
-    "Sweden": "Sweden", "SE": "Sweden", "🇸🇪": "Sweden",
-    "Switzerland": "Switzerland", "CH": "Switzerland", "🇨🇭": "Switzerland",
-    "Italy": "Italy", "IT": "Italy", "🇮🇹": "Italy",
-    "Spain": "Spain", "ES": "Spain", "🇪🇸": "Spain",
-    "Estonia": "Estonia", "EE": "Estonia", "🇪🇪": "Estonia",
-    "UAE": "UAE", "United Arab Emirates": "UAE", "AE": "UAE", "🇦🇪": "UAE",
-    "Armenia": "Armenia", "AM": "Armenia", "🇦🇲": "Armenia",
-    "Argentina": "Argentina", "AR": "Argentina", "🇦🇷": "Argentina",
-    "Czechia": "Czechia", "Czech": "Czechia", "CZ": "Czechia", "🇨🇿": "Czechia",
-    "Dominican": "Dominican", "DO": "Dominican", "🇩🇴": "Dominican",
-    "Korea": "Korea", "KR": "Korea", "🇰🇷": "Korea",
+# این ساختار جدید به تشخیص دقیق‌تر کمک می‌کند
+COUNTRY_ALIASES = {
+    "Germany": ["Germany", "Deutschland", "DE", "🇩🇪"],
+    "USA": ["United States", "USA", "US", "🇺🇸"],
+    "Netherlands": ["Netherlands", "NL", "🇳🇱"],
+    "France": ["France", "FR", "🇫🇷"],
+    "UK": ["United Kingdom", "UK", "GB", "🇬🇧"],
+    "Canada": ["Canada", "CA", "🇨🇦"],
+    "Japan": ["Japan", "JP", "🇯🇵"],
+    "Singapore": ["Singapore", "SG", "🇸🇬"],
+    "Finland": ["Finland", "FI", "🇫🇮"],
+    "Iran": ["Iran", "IR", "🇮🇷"],
+    "Turkey": ["Turkey", "TR", "🇹🇷"],
+    "Russia": ["Russia", "RU", "🇷🇺"],
+    "Austria": ["Austria", "AT", "🇦🇹"],
+    "Poland": ["Poland", "PL", "🇵🇱"],
+    "Sweden": ["Sweden", "SE", "🇸🇪"],
+    "Switzerland": ["Switzerland", "CH", "🇨🇭"],
+    "Italy": ["Italy", "IT", "🇮🇹"],
+    "Spain": ["Spain", "ES", "🇪🇸"],
+    "Estonia": ["Estonia", "EE", "🇪🇪"],
+    "UAE": ["UAE", "United Arab Emirates", "AE", "🇦🇪"],
+    "Armenia": ["Armenia", "AM", "🇦🇲"],
+    "Argentina": ["Argentina", "AR", "🇦🇷"],
+    "Czechia": ["Czechia", "Czech", "CZ", "🇨🇿"],
+    "Dominican": ["Dominican", "DO", "🇩🇴"],
+    "Korea": ["Korea", "KR", "🇰🇷"],
 }
 
 def fetch_and_decode_content(url):
@@ -43,9 +44,11 @@ def fetch_and_decode_content(url):
         response.raise_for_status()
         content = response.text
         try:
+            # First, try to decode the whole content as base64
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
             return decoded_content.strip().split('\n')
         except Exception:
+            # If it fails, return the content line by line
             return content.strip().split('\n')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching from {url}: {e}")
@@ -56,13 +59,14 @@ def get_remark_from_config(config):
     remark = ''
     try:
         if '#' in config:
-            # URL Decode simple parts of the remark
-            from urllib.parse import unquote
             remark += " " + unquote(config.split('#')[-1])
         
         if config.startswith('vmess://'):
             # For vmess, decode the base64 part to get the 'ps' key
-            decoded_part = base64.b64decode(config[8:]).decode('utf-8')
+            # Add padding if necessary for correct decoding
+            b64_part = config[8:]
+            b64_part += '=' * (-len(b64_part) % 4)
+            decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
     except Exception:
@@ -102,18 +106,23 @@ def main():
 
         remark = get_remark_from_config(config)
         
-        # توکن‌سازی دقیق‌تر نام کانفیگ برای جستجوی دقیق کلمات
-        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
-        
-        found_country = False
-        # اولویت با کدهای طولانی‌تر است تا از تشخیص اشتباه جلوگیری شود
-        for code in sorted(COUNTRY_MAP.keys(), key=len, reverse=True):
-            if code.upper() in tokens:
-                country_name = COUNTRY_MAP[code]
-                by_country[country_name].append(config)
-                found_country = True
-                break
-        if not found_country:
+        found_country_name = None
+        # Iterate through countries to find a match
+        for country_name, aliases in COUNTRY_ALIASES.items():
+            # Sort aliases by length, longest first, to match specific names before short codes
+            for alias in sorted(aliases, key=len, reverse=True):
+                # Use a robust regex to match whole words/codes only
+                # This prevents matching 'IR' in 'servIRan'
+                pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
+                if re.search(pattern, remark, re.IGNORECASE):
+                    found_country_name = country_name
+                    break # Found the country for this config
+            if found_country_name:
+                break # Move to the next config
+    
+        if found_country_name:
+            by_country[found_country_name].append(config)
+        else:
             by_country["Unknown"].append(config)
             
     # --- نوشتن فایل‌ها ---
@@ -132,14 +141,16 @@ def main():
     # نوشتن فایل‌های پروتکل
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)):
+            for config in list(dict.fromkeys(configs)): # حذف تکراری
                 f.write(config + '\n')
     
     # نوشتن فایل‌های کشور
     for country, configs in by_country.items():
-        with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)):
-                f.write(config + '\n')
+        # Only create country file if it has configs
+        if configs:
+            with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
+                for config in list(dict.fromkeys(configs)): # حذف تکراری
+                    f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
 
