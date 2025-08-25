@@ -7,11 +7,38 @@ from collections import defaultdict
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
 COUNTRY_MAP = {
+    # اولویت با کدهای طولانی‌تر و خاص‌تر است
+    "Germany": "Germany", "Deutschland": "Germany",
+    "United States": "USA", "USA": "USA",
+    "Netherlands": "Netherlands",
+    "France": "France",
+    "United Kingdom": "UK", "UK": "UK",
+    "Canada": "Canada",
+    "Japan": "Japan",
+    "Singapore": "Singapore",
+    "Finland": "Finland",
+    "Iran": "Iran",
+    "Turkey": "Turkey",
+    "Russia": "Russia",
+    "Austria": "Austria",
+    "Poland": "Poland",
+    "Sweden": "Sweden",
+    "Switzerland": "Switzerland",
+    "Italy": "Italy",
+    "Spain": "Spain",
+    "Estonia": "Estonia",
+    "UAE": "UAE", "United Arab Emirates": "UAE",
+    "Armenia": "Armenia",
+    "Argentina": "Argentina",
+    "Czechia": "Czechia", "Czech": "Czechia",
+    "Dominican": "Dominican",
+    "Korea": "Korea",
+    # کدهای دو حرفی و ایموجی‌ها
     "DE": "Germany", "🇩🇪": "Germany",
     "US": "USA", "🇺🇸": "USA",
     "NL": "Netherlands", "🇳🇱": "Netherlands",
     "FR": "France", "🇫🇷": "France",
-    "GB": "UK", "🇬🇧": "UK", "UK": "UK",
+    "GB": "UK", "🇬🇧": "UK",
     "CA": "Canada", "🇨🇦": "Canada",
     "JP": "Japan", "🇯🇵": "Japan",
     "SG": "Singapore", "🇸🇬": "Singapore",
@@ -49,16 +76,20 @@ def fetch_and_decode_content(url):
         print(f"Error fetching from {url}: {e}")
         return []
 
-def get_remark_from_vmess(config):
-    """نام کانفیگ (ps) را از داخل vmess استخراج می‌کند."""
+def get_remark_from_config(config):
+    """نام کانفیگ (remark/ps) را از انواع کانفیگ استخراج می‌کند."""
+    remark = ''
     try:
+        if '#' in config:
+            remark += " " + config.split('#')[-1]
+        
         if config.startswith('vmess://'):
             decoded_part = base64.b64decode(config[8:]).decode('utf-8')
             vmess_data = json.loads(decoded_part)
-            return vmess_data.get('ps', '')
+            remark += " " + vmess_data.get('ps', '')
     except Exception:
-        return ''
-    return ''
+        pass # Ignore errors in remark extraction
+    return remark
 
 def main():
     """تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند."""
@@ -91,18 +122,14 @@ def main():
         proto = config.split('://')[0]
         by_protocol[proto.upper()].append(config)
 
-        # ترکیب نام بعد از # و نام داخل vmess برای جستجوی بهتر
-        remark_part = ''
-        if '#' in config:
-            remark_part = config.split('#')[-1]
+        remark = get_remark_from_config(config)
         
-        if proto == 'vmess':
-            remark_part += " " + get_remark_from_vmess(config)
-
+        # توکن‌سازی دقیق‌تر نام کانفیگ
+        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark))
+        
         found_country = False
         for code, name in COUNTRY_MAP.items():
-            # استفاده از regex برای پیدا کردن کد کشور به صورت یک کلمه جدا
-            if re.search(rf'[^a-zA-Z0-9]{re.escape(code)}[^a-zA-Z0-9]|^{re.escape(code)}[^a-zA-Z0-9]|[^a-zA-Z0-9]{re.escape(code)}$', remark_part, re.IGNORECASE):
+            if code in tokens:
                 by_country[name].append(config)
                 found_country = True
                 break
@@ -110,24 +137,29 @@ def main():
             by_country["Unknown"].append(config)
             
     # --- نوشتن فایل‌ها ---
+    # پاک کردن فایل‌ها و پوشه‌های قدیمی برای جلوگیری از باقی ماندن فایل‌های حذف شده
+    if os.path.exists('sub'):
+        import shutil
+        shutil.rmtree('sub')
+        
     os.makedirs('sub/protocol', exist_ok=True)
     os.makedirs('sub/country', exist_ok=True)
 
-    # نوشتن فایل کلی (با حذف نهایی تکراری)
+    # نوشتن فایل کلی
     with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
-        for config in list(dict.fromkeys(unique_configs)):
+        for config in unique_configs:
             f.write(config + '\n')
     
-    # نوشتن فایل‌های پروتکل (با حذف نهایی تکراری)
+    # نوشتن فایل‌های پروتکل
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)):
+            for config in list(dict.fromkeys(configs)): # حذف تکراری
                 f.write(config + '\n')
     
-    # نوشتن فایل‌های کشور (با حذف نهایی تکراری)
+    # نوشتن فایل‌های کشور
     for country, configs in by_country.items():
         with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)):
+            for config in list(dict.fromkeys(configs)): # حذف تکراری
                 f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
