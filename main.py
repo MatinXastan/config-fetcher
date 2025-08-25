@@ -13,7 +13,7 @@ COUNTRY_ALIASES = {
     "USA": ["United States", "USA", "US", "🇺🇸"],
     "Netherlands": ["Netherlands", "NL", "🇳🇱"],
     "France": ["France", "FR", "🇫🇷"],
-    "UK": ["United Kingdom", "UK", "GB", "�🇧"],
+    "UK": ["United Kingdom", "UK", "GB", "🇬🇧"],
     "Canada": ["Canada", "CA", "🇨🇦"],
     "Japan": ["Japan", "JP", "🇯🇵"],
     "Singapore": ["Singapore", "SG", "🇸🇬"],
@@ -148,4 +148,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-�
