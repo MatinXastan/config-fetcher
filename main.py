@@ -68,6 +68,31 @@ def get_remark_from_config(config):
         pass
     return remark
 
+def find_country(remark):
+    """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند."""
+    # اولویت اول: جستجوی ایموجی‌ها
+    for country_name, aliases in COUNTRY_ALIASES.items():
+        for alias in aliases:
+            if len(alias) > 2 and not alias.isalpha(): # Heuristic for emojis
+                if alias in remark:
+                    return country_name
+    
+    # اولویت دوم: جستجوی کدهای دو حرفی
+    tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
+    for country_name, aliases in COUNTRY_ALIASES.items():
+        for alias in aliases:
+            if len(alias) == 2 and alias.isalpha() and alias.upper() in tokens:
+                return country_name
+
+    # اولویت سوم: جستجوی نام کامل کشور
+    for country_name, aliases in COUNTRY_ALIASES.items():
+        for alias in aliases:
+            if len(alias) > 2 and alias.isalpha():
+                pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
+                if re.search(pattern, remark, re.IGNORECASE):
+                    return country_name
+    return None
+
 def main():
     """تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند."""
     urls_str = os.environ.get('CONFIG_URLS')
@@ -86,7 +111,6 @@ def main():
             if configs:
                 all_configs.extend(configs)
 
-    # --- لیست کامل پروتکل‌های معتبر ---
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
     unique_configs = list(dict.fromkeys(initial_valid_configs))
@@ -101,28 +125,14 @@ def main():
         by_protocol[proto.upper()].append(config)
 
         remark = get_remark_from_config(config)
-        # توکن‌سازی دقیق‌تر نام کانفیگ برای جستجوی دقیق کلمات
-        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
+        country = find_country(remark)
         
-        found_country_name = None
-        # اولویت با کدهای طولانی‌تر است تا از تشخیص اشتباه جلوگیری شود
-        for country_name, aliases in COUNTRY_ALIASES.items():
-            for alias in sorted(aliases, key=len, reverse=True):
-                # استفاده از regex برای پیدا کردن کد کشور به صورت یک کلمه جدا
-                pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias.upper()) + r'(?![a-zA-Z0-9])'
-                if re.search(pattern, remark.upper()):
-                    found_country_name = country_name
-                    break
-            if found_country_name:
-                break
-    
-        if found_country_name:
-            by_country[found_country_name].append(config)
+        if country:
+            by_country[country].append(config)
         else:
             by_country["Unknown"].append(config)
             
     # --- نوشتن فایل‌ها ---
-    # پاک کردن فایل‌ها و پوشه‌های قدیمی برای شروع تمیز
     if os.path.exists('sub'):
         shutil.rmtree('sub')
         
@@ -135,13 +145,13 @@ def main():
     
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)): # حذف تکراری
+            for config in list(dict.fromkeys(configs)):
                 f.write(config + '\n')
     
     for country, configs in by_country.items():
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-                for config in list(dict.fromkeys(configs)): # حذف تکراری
+                for config in list(dict.fromkeys(configs)):
                     f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
