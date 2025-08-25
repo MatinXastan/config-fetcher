@@ -1,5 +1,5 @@
 # نام ورک‌فلو
-name: Fetch V2Ray Configs
+name: Fetch and Commit V2Ray Configs
 
 on:
   # اجرای خودکار هر ۶ ساعت یک‌بار
@@ -10,12 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-commit:
     runs-on: ubuntu-latest
 
     steps:
-      # مرحله ۱: دانلود کد ریپازیتوری عمومی
-      - name: Checkout public repository
+      # مرحله ۱: دانلود کد ریپازیتوری
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       # مرحله ۲: نصب پایتون
@@ -30,32 +30,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      # مرحله ۴: اجرای اسکریپت پایتون
+      # مرحله ۴: اجرای اسکریپت پایتون برای ساخت فایل کانفیگ
       - name: Run Python script to fetch configs
         env:
           CONFIG_URLS: ${{ secrets.CONFIG_URLS }}
         run: python main.py
 
-      # مرحله ۵: ارسال فایل خروجی به ریپازیتوری خصوصی
-      - name: Push to private repository
+      # مرحله ۵: کامیت و پوش کردن فایل جدید در همین ریپازیتوری
+      - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # !!! این قسمت را با اطلاعات خودتان جایگزین کنید !!!
-          git clone https://${{ secrets.ACCESS_TOKEN }}@github.com/MatinXastan/my-configs.git private_repo
-          
-          mv v2ray_configs.txt private_repo/
-          
-          cd private_repo
-          
           git add v2ray_configs.txt
-          
           # فقط در صورتی کامیت کن که تغییری وجود داشته باشد
           if ! git diff --staged --quiet; then
             git commit -m "Update configs [$(date)]"
             git push
-            echo "✅ New configs pushed to the private repository."
+            echo "✅ New configs committed and pushed."
           else
-            echo "ℹ️ No changes to push."
+            echo "ℹ️ No changes to commit."
           fi
