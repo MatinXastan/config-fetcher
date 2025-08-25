@@ -1,4 +1,4 @@
-name: Fetch and Sort V2Ray Configs
+name: Fetch, Sort, and Release V2Ray Configs
 
 on:
   schedule:
@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-commit:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
+      # این مجوز برای ساخت و مدیریت Release ضروری است
       contents: write
 
     steps:
@@ -25,24 +26,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Run Python script to fetch and sort configs
+      - name: Run Python script to create config files
         env:
           CONFIG_URLS: ${{ secrets.CONFIG_URLS }}
         run: python main.py
 
-      - name: Commit and push if changed
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # --- تغییر مهم در این بخش ---
-          # به جای یک فایل، تمام تغییرات را اضافه می‌کند
-          git add .
-          
-          if ! git diff --staged --quiet; then
-            git commit -m "Update and sort configs [$(date)]"
-            git push
-            echo "✅ New configs sorted and pushed."
-          else
-            echo "ℹ️ No changes to commit."
-          fi
+      # --- بخش جدید برای ساخت Release ---
+
+      # مرحله 5: فشرده‌سازی پوشه sub برای دانلود راحت‌تر
+      - name: Zip the sorted configs directory
+        run: zip -r sub.zip ./sub
+
+      # مرحله 6: ساخت یا به‌روزرسانی Release و آپلود فایل‌ها
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          # یک تگ ثابت به نام 'latest' ایجاد یا آپدیت می‌کند
+          # این باعث می‌شود آدرس دانلود شما همیشه ثابت باشد
+          tag_name: latest
+          name: "Latest Configs (Updated ${{ env.CURRENT_DATE }})"
+          body: "Automated update of subscription files."
+          # فایل‌هایی که باید به Release پیوست شوند
+          files: |
+            v2ray_configs.txt
+            sub.zip
+            sub/protocol/*.txt
+            sub/country/*.txt
+        env:
+          # یک متغیر برای نمایش تاریخ در نام Release می‌سازیم
+          CURRENT_DATE: $(date +"%Y-%m-%d %H:%M:%S UTC")
