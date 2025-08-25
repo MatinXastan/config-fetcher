@@ -8,13 +8,12 @@ from collections import defaultdict
 from urllib.parse import unquote
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
-# این ساختار جدید به تشخیص دقیق‌تر کمک می‌کند
 COUNTRY_ALIASES = {
     "Germany": ["Germany", "Deutschland", "DE", "🇩🇪"],
     "USA": ["United States", "USA", "US", "🇺🇸"],
     "Netherlands": ["Netherlands", "NL", "🇳🇱"],
     "France": ["France", "FR", "🇫🇷"],
-    "UK": ["United Kingdom", "UK", "GB", "🇬🇧"],
+    "UK": ["United Kingdom", "UK", "GB", "�🇧"],
     "Canada": ["Canada", "CA", "🇨🇦"],
     "Japan": ["Japan", "JP", "🇯🇵"],
     "Singapore": ["Singapore", "SG", "🇸🇬"],
@@ -44,11 +43,9 @@ def fetch_and_decode_content(url):
         response.raise_for_status()
         content = response.text
         try:
-            # First, try to decode the whole content as base64
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
             return decoded_content.strip().split('\n')
         except Exception:
-            # If it fails, return the content line by line
             return content.strip().split('\n')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching from {url}: {e}")
@@ -62,15 +59,13 @@ def get_remark_from_config(config):
             remark += " " + unquote(config.split('#')[-1])
         
         if config.startswith('vmess://'):
-            # For vmess, decode the base64 part to get the 'ps' key
-            # Add padding if necessary for correct decoding
             b64_part = config[8:]
             b64_part += '=' * (-len(b64_part) % 4)
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
     except Exception:
-        pass # Ignore errors in remark extraction
+        pass
     return remark
 
 def main():
@@ -91,7 +86,8 @@ def main():
             if configs:
                 all_configs.extend(configs)
 
-    valid_protocols = ('vless://', 'vmess://', 'ss://', 'trojan://', 'tuic://')
+    # --- لیست کامل پروتکل‌های معتبر ---
+    valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
     unique_configs = list(dict.fromkeys(initial_valid_configs))
     
@@ -105,20 +101,20 @@ def main():
         by_protocol[proto.upper()].append(config)
 
         remark = get_remark_from_config(config)
+        # توکن‌سازی دقیق‌تر نام کانفیگ برای جستجوی دقیق کلمات
+        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
         
         found_country_name = None
-        # Iterate through countries to find a match
+        # اولویت با کدهای طولانی‌تر است تا از تشخیص اشتباه جلوگیری شود
         for country_name, aliases in COUNTRY_ALIASES.items():
-            # Sort aliases by length, longest first, to match specific names before short codes
             for alias in sorted(aliases, key=len, reverse=True):
-                # Use a robust regex to match whole words/codes only
-                # This prevents matching 'IR' in 'servIRan'
-                pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
-                if re.search(pattern, remark, re.IGNORECASE):
+                # استفاده از regex برای پیدا کردن کد کشور به صورت یک کلمه جدا
+                pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias.upper()) + r'(?![a-zA-Z0-9])'
+                if re.search(pattern, remark.upper()):
                     found_country_name = country_name
-                    break # Found the country for this config
+                    break
             if found_country_name:
-                break # Move to the next config
+                break
     
         if found_country_name:
             by_country[found_country_name].append(config)
@@ -133,20 +129,16 @@ def main():
     os.makedirs('sub/protocol', exist_ok=True)
     os.makedirs('sub/country', exist_ok=True)
 
-    # نوشتن فایل کلی
     with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
         for config in unique_configs:
             f.write(config + '\n')
     
-    # نوشتن فایل‌های پروتکل
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
             for config in list(dict.fromkeys(configs)): # حذف تکراری
                 f.write(config + '\n')
     
-    # نوشتن فایل‌های کشور
     for country, configs in by_country.items():
-        # Only create country file if it has configs
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
                 for config in list(dict.fromkeys(configs)): # حذف تکراری
@@ -156,3 +148,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+�
