@@ -72,16 +72,19 @@ def find_country(remark):
     """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند."""
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
+            # اولویت با ایموجی‌ها
             if not alias.isalpha() and len(alias) > 1:
                 if alias in remark:
                     return country_name
     
+    # جستجو برای کدهای دو حرفی
     tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) == 2 and alias.isalpha() and alias.upper() in tokens:
                 return country_name
 
+    # جستجو برای نام کامل کشور
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) > 2 and alias.isalpha():
@@ -129,7 +132,7 @@ def get_config_identifier(config):
             sorted_values = sorted(query_params[key])
             sorted_params.append(f"{key}={'&'.join(sorted_values)}")
         
-        # شناسه را از اجزای اصلی سرور می‌سازیم و اطلاعات کاربری (UUID/password) را حذف می‌کنیم
+        # شناسه را از اجزای اصلی سرور می‌سازیم
         identifier_parts = [
             protocol,
             f"{hostname}:{port}",
@@ -193,19 +196,34 @@ def main():
         else:
             by_country["Unknown"].append(config)
             
+    # حذف و ایجاد مجدد پوشه‌ها
     if os.path.exists('sub'):
         shutil.rmtree('sub')
         
     os.makedirs('sub/protocol', exist_ok=True)
     os.makedirs('sub/country', exist_ok=True)
+    os.makedirs('sub/split', exist_ok=True) # --- پوشه جدید برای فایل‌های تقسیم‌شده
 
+    # نوشتن همه کانفیگ‌های منحصر به فرد در یک فایل
     with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
         f.write('\n'.join(unique_configs))
     
+    # --- بخش جدید: تقسیم فایل اصلی به فایل‌های کوچک‌تر ---
+    chunk_size = 100
+    for i in range(0, len(unique_configs), chunk_size):
+        chunk = unique_configs[i:i + chunk_size]
+        file_path = f'sub/split/v2ray_configs_{i // chunk_size + 1}.txt'
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(chunk))
+    print(f"✅ Main config file split into smaller files in 'sub/split/' directory.")
+    # --- پایان بخش جدید ---
+
+    # نوشتن فایل‌ها بر اساس پروتکل
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
             f.write('\n'.join(configs))
     
+    # نوشتن فایل‌ها بر اساس کشور
     for country, configs in by_country.items():
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
