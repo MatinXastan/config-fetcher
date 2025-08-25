@@ -3,62 +3,37 @@ import requests
 import base64
 import re
 import json
+import shutil
 from collections import defaultdict
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
+# اولویت با کدهای طولانی‌تر و خاص‌تر است تا از تشخیص اشتباه جلوگیری شود
 COUNTRY_MAP = {
-    # اولویت با کدهای طولانی‌تر و خاص‌تر است
-    "Germany": "Germany", "Deutschland": "Germany",
-    "United States": "USA", "USA": "USA",
-    "Netherlands": "Netherlands",
-    "France": "France",
-    "United Kingdom": "UK", "UK": "UK",
-    "Canada": "Canada",
-    "Japan": "Japan",
-    "Singapore": "Singapore",
-    "Finland": "Finland",
-    "Iran": "Iran",
-    "Turkey": "Turkey",
-    "Russia": "Russia",
-    "Austria": "Austria",
-    "Poland": "Poland",
-    "Sweden": "Sweden",
-    "Switzerland": "Switzerland",
-    "Italy": "Italy",
-    "Spain": "Spain",
-    "Estonia": "Estonia",
-    "UAE": "UAE", "United Arab Emirates": "UAE",
-    "Armenia": "Armenia",
-    "Argentina": "Argentina",
-    "Czechia": "Czechia", "Czech": "Czechia",
-    "Dominican": "Dominican",
-    "Korea": "Korea",
-    # کدهای دو حرفی و ایموجی‌ها
-    "DE": "Germany", "🇩🇪": "Germany",
-    "US": "USA", "🇺🇸": "USA",
-    "NL": "Netherlands", "🇳🇱": "Netherlands",
-    "FR": "France", "🇫🇷": "France",
-    "GB": "UK", "🇬🇧": "UK",
-    "CA": "Canada", "🇨🇦": "Canada",
-    "JP": "Japan", "🇯🇵": "Japan",
-    "SG": "Singapore", "🇸🇬": "Singapore",
-    "FI": "Finland", "🇫🇮": "Finland",
-    "IR": "Iran", "🇮🇷": "Iran",
-    "TR": "Turkey", "🇹🇷": "Turkey",
-    "RU": "Russia", "🇷🇺": "Russia",
-    "AT": "Austria", "🇦🇹": "Austria",
-    "PL": "Poland", "🇵🇱": "Poland",
-    "SE": "Sweden", "🇸🇪": "Sweden",
-    "CH": "Switzerland", "🇨🇭": "Switzerland",
-    "IT": "Italy", "🇮🇹": "Italy",
-    "ES": "Spain", "🇪🇸": "Spain",
-    "EE": "Estonia", "🇪🇪": "Estonia",
-    "AE": "UAE", "🇦🇪": "UAE",
-    "AM": "Armenia", "🇦🇲": "Armenia",
-    "AR": "Argentina", "🇦🇷": "Argentina",
-    "CZ": "Czechia", "🇨🇿": "Czechia",
-    "DO": "Dominican", "🇩🇴": "Dominican",
-    "KR": "Korea", "🇰🇷": "Korea",
+    "Germany": "Germany", "Deutschland": "Germany", "DE": "Germany", "🇩🇪": "Germany",
+    "United States": "USA", "USA": "USA", "US": "USA", "🇺🇸": "USA",
+    "Netherlands": "Netherlands", "NL": "Netherlands", "🇳🇱": "Netherlands",
+    "France": "France", "FR": "France", "🇫🇷": "France",
+    "United Kingdom": "UK", "UK": "UK", "GB": "UK", "🇬🇧": "UK",
+    "Canada": "Canada", "CA": "Canada", "🇨🇦": "Canada",
+    "Japan": "Japan", "JP": "Japan", "🇯🇵": "Japan",
+    "Singapore": "Singapore", "SG": "Singapore", "🇸🇬": "Singapore",
+    "Finland": "Finland", "FI": "Finland", "🇫🇮": "Finland",
+    "Iran": "Iran", "IR": "Iran", "🇮🇷": "Iran",
+    "Turkey": "Turkey", "TR": "Turkey", "🇹🇷": "Turkey",
+    "Russia": "Russia", "RU": "Russia", "🇷🇺": "Russia",
+    "Austria": "Austria", "AT": "Austria", "🇦🇹": "Austria",
+    "Poland": "Poland", "PL": "Poland", "🇵🇱": "Poland",
+    "Sweden": "Sweden", "SE": "Sweden", "🇸🇪": "Sweden",
+    "Switzerland": "Switzerland", "CH": "Switzerland", "🇨🇭": "Switzerland",
+    "Italy": "Italy", "IT": "Italy", "🇮🇹": "Italy",
+    "Spain": "Spain", "ES": "Spain", "🇪🇸": "Spain",
+    "Estonia": "Estonia", "EE": "Estonia", "🇪🇪": "Estonia",
+    "UAE": "UAE", "United Arab Emirates": "UAE", "AE": "UAE", "🇦🇪": "UAE",
+    "Armenia": "Armenia", "AM": "Armenia", "🇦🇲": "Armenia",
+    "Argentina": "Argentina", "AR": "Argentina", "🇦🇷": "Argentina",
+    "Czechia": "Czechia", "Czech": "Czechia", "CZ": "Czechia", "🇨🇿": "Czechia",
+    "Dominican": "Dominican", "DO": "Dominican", "🇩🇴": "Dominican",
+    "Korea": "Korea", "KR": "Korea", "🇰🇷": "Korea",
 }
 
 def fetch_and_decode_content(url):
@@ -81,9 +56,12 @@ def get_remark_from_config(config):
     remark = ''
     try:
         if '#' in config:
-            remark += " " + config.split('#')[-1]
+            # URL Decode simple parts of the remark
+            from urllib.parse import unquote
+            remark += " " + unquote(config.split('#')[-1])
         
         if config.startswith('vmess://'):
+            # For vmess, decode the base64 part to get the 'ps' key
             decoded_part = base64.b64decode(config[8:]).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
@@ -124,22 +102,23 @@ def main():
 
         remark = get_remark_from_config(config)
         
-        # توکن‌سازی دقیق‌تر نام کانفیگ
-        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark))
+        # توکن‌سازی دقیق‌تر نام کانفیگ برای جستجوی دقیق کلمات
+        tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
         
         found_country = False
-        for code, name in COUNTRY_MAP.items():
-            if code in tokens:
-                by_country[name].append(config)
+        # اولویت با کدهای طولانی‌تر است تا از تشخیص اشتباه جلوگیری شود
+        for code in sorted(COUNTRY_MAP.keys(), key=len, reverse=True):
+            if code.upper() in tokens:
+                country_name = COUNTRY_MAP[code]
+                by_country[country_name].append(config)
                 found_country = True
                 break
         if not found_country:
             by_country["Unknown"].append(config)
             
     # --- نوشتن فایل‌ها ---
-    # پاک کردن فایل‌ها و پوشه‌های قدیمی برای جلوگیری از باقی ماندن فایل‌های حذف شده
+    # پاک کردن فایل‌ها و پوشه‌های قدیمی برای شروع تمیز
     if os.path.exists('sub'):
-        import shutil
         shutil.rmtree('sub')
         
     os.makedirs('sub/protocol', exist_ok=True)
@@ -153,13 +132,13 @@ def main():
     # نوشتن فایل‌های پروتکل
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)): # حذف تکراری
+            for config in list(dict.fromkeys(configs)):
                 f.write(config + '\n')
     
     # نوشتن فایل‌های کشور
     for country, configs in by_country.items():
         with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-            for config in list(dict.fromkeys(configs)): # حذف تکراری
+            for config in list(dict.fromkeys(configs)):
                 f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
