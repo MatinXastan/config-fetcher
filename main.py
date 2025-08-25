@@ -73,7 +73,7 @@ def find_country(remark):
     # اولویت اول: جستجوی ایموجی‌ها
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
-            if not alias.isalpha() and len(alias) > 1: # Heuristic for emojis
+            if not alias.isalpha() and len(alias) > 1:
                 if alias in remark:
                     return country_name
     
@@ -158,13 +158,13 @@ def main():
     
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in configs: # Already unique
+            for config in configs:
                 f.write(config + '\n')
     
     for country, configs in by_country.items():
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-                for config in configs: # Already unique
+                for config in configs:
                     f.write(config + '\n')
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
