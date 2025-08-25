@@ -44,14 +44,9 @@ def main():
                 print(f"-> Found {len(configs)} lines from this URL.")
 
     # --- بخش بهبود یافته برای فیلتر کردن ---
-    # ۱. ابتدا خطوط خالی را حذف می‌کنیم
     all_configs = list(filter(None, all_configs)) 
-
-    # ۲. فقط خطوطی که با پروتکل‌های معتبر شروع می‌شوند را نگه می‌داریم
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'trojan://', 'tuic://')
     valid_configs = [c for c in all_configs if c.strip().startswith(valid_protocols)]
-
-    # ۳. حالا از بین کانفیگ‌های معتبر، تکراری‌ها را حذف می‌کنیم
     unique_configs = list(dict.fromkeys(valid_configs))
     # --- پایان بخش بهبود یافته ---
     
