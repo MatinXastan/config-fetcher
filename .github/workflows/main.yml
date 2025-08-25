@@ -1,4 +1,4 @@
-name: Fetch, Sort, and Release V2Ray Configs
+name: Fetch, Sort, Commit, and Release V2Ray Configs
 
 on:
   schedule:
@@ -9,7 +9,7 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # مجوز لازم برای ایجاد و مدیریت Release
+      contents: write # مجوز لازم برای نوشتن در ریپازیتوری و ایجاد Release
 
     steps:
       - name: Checkout repository
@@ -30,26 +30,37 @@ jobs:
           CONFIG_URLS: ${{ secrets.CONFIG_URLS }}
         run: python main.py
 
+      # --- بخش جدید: کامیت و پوش کردن فایل‌های ساخته‌شده به ریپازیتوری ---
+      - name: Commit and push generated files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # فایل اصلی و کل پوشه sub را برای کامیت آماده می‌کند
+          git add v2ray_configs.txt sub/
+          # فقط در صورتی کامیت می‌کند که تغییری وجود داشته باشد
+          if ! git diff --staged --quiet; then
+            git commit -m "Update subscription files"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      # --- بخش ریلیز: فشرده‌سازی و آپلود فایل‌ها ---
       - name: Zip the sorted configs directory
-        # این مرحله کل پوشه sub را فشرده می‌کند
         run: zip -r sub.zip ./sub
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          # یک تگ ثابت به نام 'latest' ایجاد یا آپدیت می‌کند
-          # این باعث می‌شود آدرس دانلود شما همیشه ثابت باشد
           tag_name: latest
           name: "Latest Configs (Updated ${{ env.CURRENT_DATE }})"
-          body: "Automated update of subscription files."
+          body: "Automated update of subscription files. All files are also available in the repository."
           # فایل‌هایی که باید به Release پیوست شوند
           files: |
             v2ray_configs.txt
             sub.zip
             sub/protocol/*.txt
             sub/country/*.txt
-            sub/split/*.txt  # <-- این خط اضافه شده است
+            sub/split/*.txt
         env:
-          # یک متغیر برای نمایش تاریخ در نام Release می‌سازیم
           CURRENT_DATE: $(date +"%Y-%m-%d %H:%M:%S UTC")
-
