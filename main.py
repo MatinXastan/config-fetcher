@@ -43,9 +43,11 @@ def fetch_and_decode_content(url):
         response.raise_for_status()
         content = response.text
         try:
+            # تلاش برای دیکود کردن محتوا از Base64
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
             return decoded_content.strip().split('\n')
         except Exception:
+            # اگر محتوا Base64 نبود، آن را به صورت خط به خط برمی‌گرداند
             return content.strip().split('\n')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching from {url}: {e}")
@@ -55,24 +57,27 @@ def get_remark_from_config(config):
     """نام کانفیگ (remark/ps) را از انواع کانفیگ استخراج می‌کند."""
     remark = ''
     try:
+        # استخراج نام از بخش #
         if '#' in config:
             remark += " " + unquote(config.split('#', 1)[-1])
         
+        # استخراج نام از کانفیگ vmess
         if config.startswith('vmess://'):
             b64_part = config[8:]
-            b64_part += '=' * (-len(b64_part) % 4)
+            b64_part += '=' * (-len(b64_part) % 4)  # اضافه کردن پدینگ در صورت نیاز
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
     except Exception:
         pass
-    return remark
+    return remark.strip()
 
 def find_country(remark):
     """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند."""
     # اولویت اول: جستجوی ایموجی‌ها
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
+            # ایموجی‌ها معمولاً حروف الفبا نیستند و بیش از یک کاراکتر دارند
             if not alias.isalpha() and len(alias) > 1:
                 if alias in remark:
                     return country_name
@@ -88,19 +93,52 @@ def find_country(remark):
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) > 2 and alias.isalpha():
+                # استفاده از regex برای پیدا کردن کلمه کامل
                 pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
                 if re.search(pattern, remark, re.IGNORECASE):
                     return country_name
     return None
 
+def get_config_identifier(config):
+    """یک شناسه منحصر به فرد برای هر کانفیگ بر اساس اطلاعات اصلی سرور ایجاد می‌کند."""
+    try:
+        if config.startswith('vmess://'):
+            b64_part = config.split('://')[1]
+            # حذف بخش نام بعد از # اگر وجود داشته باشد
+            if '#' in b64_part:
+                b64_part = b64_part.split('#')[0]
+            
+            b64_part += '=' * (-len(b64_part) % 4)
+            decoded_part = base64.b64decode(b64_part).decode('utf-8')
+            vmess_data = json.loads(decoded_part)
+            # شناسه بر اساس اطلاعات اصلی سرور ساخته می‌شود و 'ps' (نام) نادیده گرفته می‌شود
+            identifier = (
+                vmess_data.get('add', ''),
+                str(vmess_data.get('port', '')),
+                vmess_data.get('id', ''),
+                vmess_data.get('net', ''),
+                vmess_data.get('type', ''),
+                vmess_data.get('path', ''),
+                vmess_data.get('host', '')
+            )
+            return f"vmess://{str(identifier)}"
+        
+        # برای سایر پروتکل‌ها، بخش اصلی کانفیگ (قبل از # و ؟) به عنوان شناسه استفاده می‌شود
+        base_config = config.split('#', 1)[0].split('?', 1)[0]
+        return base_config
+
+    except Exception:
+        # در صورت بروز خطا، از روش قدیمی‌تر استفاده می‌شود
+        return config.split('#', 1)[0]
+
 def remove_duplicates(configs):
-    """کانفیگ‌های تکراری را با نادیده گرفتن بخش توضیحات حذف می‌کند."""
-    seen = set()
+    """کانفیگ‌های تکراری را با استفاده از شناسه منحصر به فرد حذف می‌کند."""
+    seen_identifiers = set()
     unique_list = []
     for config in configs:
-        base_config = config.split('#', 1)[0]
-        if base_config not in seen:
-            seen.add(base_config)
+        identifier = get_config_identifier(config)
+        if identifier not in seen_identifiers:
+            seen_identifiers.add(identifier)
             unique_list.append(config)
     return unique_list
 
@@ -123,7 +161,7 @@ def main():
                 all_configs.extend(configs)
 
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
-    initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
+    initial_valid_configs = [c.strip() for c in all_configs if c and c.strip().startswith(valid_protocols)]
     
     # --- حذف هوشمند تکراری‌ها در همان ابتدا ---
     unique_configs = remove_duplicates(initial_valid_configs)
@@ -153,19 +191,16 @@ def main():
     os.makedirs('sub/country', exist_ok=True)
 
     with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
-        for config in unique_configs:
-            f.write(config + '\n')
+        f.write('\n'.join(unique_configs))
     
     for proto, configs in by_protocol.items():
         with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
-            for config in configs:
-                f.write(config + '\n')
+            f.write('\n'.join(configs))
     
     for country, configs in by_country.items():
         if configs:
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
-                for config in configs:
-                    f.write(config + '\n')
+                f.write('\n'.join(configs))
 
     print("\n✅ Success! All configs have been sorted accurately and saved.")
 
