@@ -5,7 +5,7 @@ import re
 import json
 import shutil
 from collections import defaultdict
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse, parse_qs
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
 COUNTRY_ALIASES = {
@@ -43,11 +43,9 @@ def fetch_and_decode_content(url):
         response.raise_for_status()
         content = response.text
         try:
-            # تلاش برای دیکود کردن محتوا از Base64
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
             return decoded_content.strip().split('\n')
         except Exception:
-            # اگر محتوا Base64 نبود، آن را به صورت خط به خط برمی‌گرداند
             return content.strip().split('\n')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching from {url}: {e}")
@@ -57,14 +55,12 @@ def get_remark_from_config(config):
     """نام کانفیگ (remark/ps) را از انواع کانفیگ استخراج می‌کند."""
     remark = ''
     try:
-        # استخراج نام از بخش #
         if '#' in config:
             remark += " " + unquote(config.split('#', 1)[-1])
         
-        # استخراج نام از کانفیگ vmess
         if config.startswith('vmess://'):
             b64_part = config[8:]
-            b64_part += '=' * (-len(b64_part) % 4)  # اضافه کردن پدینگ در صورت نیاز
+            b64_part += '=' * (-len(b64_part) % 4)
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
@@ -74,37 +70,31 @@ def get_remark_from_config(config):
 
 def find_country(remark):
     """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند."""
-    # اولویت اول: جستجوی ایموجی‌ها
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
-            # ایموجی‌ها معمولاً حروف الفبا نیستند و بیش از یک کاراکتر دارند
             if not alias.isalpha() and len(alias) > 1:
                 if alias in remark:
                     return country_name
     
-    # اولویت دوم: جستجوی کدهای دو حرفی
     tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) == 2 and alias.isalpha() and alias.upper() in tokens:
                 return country_name
 
-    # اولویت سوم: جستجوی نام کامل کشور
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) > 2 and alias.isalpha():
-                # استفاده از regex برای پیدا کردن کلمه کامل
                 pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
                 if re.search(pattern, remark, re.IGNORECASE):
                     return country_name
     return None
 
 def get_config_identifier(config):
-    """یک شناسه منحصر به فرد برای هر کانفیگ بر اساس اطلاعات اصلی سرور ایجاد می‌کند."""
+    """یک شناسه منحصر به فرد (اثر انگشت) برای هر کانفیگ بر اساس اطلاعات اصلی سرور ایجاد می‌کند."""
     try:
         if config.startswith('vmess://'):
             b64_part = config.split('://')[1]
-            # حذف بخش نام بعد از # اگر وجود داشته باشد
             if '#' in b64_part:
                 b64_part = b64_part.split('#')[0]
             
@@ -112,7 +102,7 @@ def get_config_identifier(config):
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             # شناسه بر اساس اطلاعات اصلی سرور ساخته می‌شود و 'ps' (نام) نادیده گرفته می‌شود
-            identifier = (
+            identifier_tuple = (
                 vmess_data.get('add', ''),
                 str(vmess_data.get('port', '')),
                 vmess_data.get('id', ''),
@@ -121,14 +111,35 @@ def get_config_identifier(config):
                 vmess_data.get('path', ''),
                 vmess_data.get('host', '')
             )
-            return f"vmess://{str(identifier)}"
+            return f"vmess://{str(identifier_tuple)}"
+
+        # --- منطق جدید و هوشمند برای کانفیگ‌های مبتنی بر URL ---
+        config_no_fragment = config.split('#', 1)[0]
+        parsed_url = urlparse(config_no_fragment)
         
-        # برای سایر پروتکل‌ها، بخش اصلی کانفیگ (قبل از # و ؟) به عنوان شناسه استفاده می‌شود
-        base_config = config.split('#', 1)[0].split('?', 1)[0]
-        return base_config
+        protocol = parsed_url.scheme
+        hostname = parsed_url.hostname
+        port = parsed_url.port
+        path = parsed_url.path
+
+        # پارامترهای کوئری را مرتب می‌کنیم تا ترتیب آن‌ها در شناسه تأثیری نداشته باشد
+        query_params = parse_qs(parsed_url.query)
+        sorted_params = []
+        for key in sorted(query_params.keys()):
+            sorted_values = sorted(query_params[key])
+            sorted_params.append(f"{key}={'&'.join(sorted_values)}")
+        
+        # شناسه را از اجزای اصلی سرور می‌سازیم و اطلاعات کاربری (UUID/password) را حذف می‌کنیم
+        identifier_parts = [
+            protocol,
+            f"{hostname}:{port}",
+            path,
+        ] + sorted_params
+
+        return "||".join(filter(None, identifier_parts))
 
     except Exception:
-        # در صورت بروز خطا، از روش قدیمی‌تر استفاده می‌شود
+        # در صورت بروز هرگونه خطا در پارس کردن، از روش ساده‌تر قبلی استفاده می‌شود
         return config.split('#', 1)[0]
 
 def remove_duplicates(configs):
@@ -163,7 +174,6 @@ def main():
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
     initial_valid_configs = [c.strip() for c in all_configs if c and c.strip().startswith(valid_protocols)]
     
-    # --- حذف هوشمند تکراری‌ها در همان ابتدا ---
     unique_configs = remove_duplicates(initial_valid_configs)
     
     print(f"\nFound {len(unique_configs)} unique configs. Now sorting...")
@@ -183,7 +193,6 @@ def main():
         else:
             by_country["Unknown"].append(config)
             
-    # --- نوشتن فایل‌ها ---
     if os.path.exists('sub'):
         shutil.rmtree('sub')
         
