@@ -6,7 +6,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def fetch_and_decode_content(url):
-    """محتوای یک URL را دریافت کرده و اگر با Base64 کد شده باشد، آن را دیکود می‌کند."""
+    # Fetches content from a URL and decodes it if it's Base64 encoded.
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -21,21 +21,32 @@ def fetch_and_decode_content(url):
         return []
 
 def extract_ip_port(config_uri):
-    """آدرس IP و پورت را از یک URI کانفیگ استخراج می‌کند."""
+    # Extracts IP address and port from a config URI.
     try:
-        # برای vless/trojan: vless://uuid@ip:port...
-        match = re.search(r'vless://.*?@(.*?):(\d+)', config_uri)
+        # For vless/trojan: vless://uuid@ip:port...
+        match = re.search(r'(vless|trojan)://.*?@(.*?):(\d+)', config_uri)
         if match:
-            return match.group(1), int(match.group(2))
-        
-        # برای vmess (که base64 انکود شده)
+            # For domain names, resolve to IP first
+            hostname = match.group(2)
+            try:
+                ip_address = socket.gethostbyname(hostname)
+                return ip_address, int(match.group(3))
+            except socket.gaierror:
+                return None, None # Could not resolve domain
+
+        # For vmess (which is base64 encoded)
         if config_uri.startswith('vmess://'):
             try:
                 decoded_part = base64.b64decode(config_uri[8:]).decode('utf-8')
                 add_match = re.search(r'"add":"(.*?)"', decoded_part)
                 port_match = re.search(r'"port":"(\d+)"', decoded_part)
                 if add_match and port_match:
-                    return add_match.group(1), int(port_match.group(1))
+                    hostname = add_match.group(1)
+                    try:
+                        ip_address = socket.gethostbyname(hostname)
+                        return ip_address, int(port_match.group(1))
+                    except socket.gaierror:
+                        return None, None # Could not resolve domain
             except Exception:
                 return None, None
     except Exception:
@@ -43,19 +54,17 @@ def extract_ip_port(config_uri):
     return None, None
 
 def check_server_connectivity(server_ip, port, timeout=2):
-    """بررسی می‌کند که آیا می‌توان به یک IP و پورت خاص متصل شد یا نه."""
+    # Checks if a TCP connection can be established to a specific IP and port.
     try:
-        # یک سوکت TCP ایجاد می‌کند
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(timeout)
-            # تلاش برای اتصال
             s.connect((server_ip, port))
         return True
     except (socket.timeout, ConnectionRefusedError, OSError):
         return False
 
 def test_config(config):
-    """یک کانفیگ را تست می‌کند و در صورت فعال بودن، آن را برمی‌گرداند."""
+    # Tests a single config and returns it if it's active.
     ip, port = extract_ip_port(config)
     if ip and port:
         if check_server_connectivity(ip, port):
@@ -64,7 +73,7 @@ def test_config(config):
     return None
 
 def main():
-    """تابع اصلی برنامه."""
+    # Main function to run the script.
     urls_str = os.environ.get('CONFIG_URLS')
     if not urls_str:
         print("CONFIG_URLS secret not found or is empty.")
@@ -81,15 +90,15 @@ def main():
             if configs:
                 all_configs.extend(configs)
 
-    # فیلتر کردن کانفیگ‌های معتبر و حذف تکراری‌ها
-    valid_protocols = ('vless://', 'vmess://') # تست برای این دو پروتکل ساده‌تر است
+    # Filter valid protocols and remove duplicates
+    valid_protocols = ('vless://', 'vmess://', 'trojan://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
     unique_configs = list(dict.fromkeys(initial_valid_configs))
     
     print(f"\nFound {len(unique_configs)} unique configs. Now testing connectivity...")
     
     active_configs = []
-    # استفاده از چند ترد برای سرعت بخشیدن به تست همزمان کانفیگ‌ها
+    # Use a thread pool to test configs concurrently for speed
     with ThreadPoolExecutor(max_workers=50) as executor:
         future_to_config = {executor.submit(test_config, config): config for config in unique_configs}
         for future in as_completed(future_to_config):
@@ -110,57 +119,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
-
-### **مرحله دوم: فایل ورک‌فلو (`main.yml`)**
-
-فایل ورک‌فلو شما **هیچ تغییری نیاز ندارد** و همان نسخه اصلاح شده قبلی باقی می‌ماند. چون تمام منطق تست به کد پایتون منتقل شده، اکشن فقط کافی است همان اسکریپت را اجرا کند.
-
-برای یادآوری، این همان فایل `main.yml` است که باید داشته باشید:
-
-
-```yaml
-name: Fetch and Commit V2Ray Configs
-
-on:
-  schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
-
-jobs:
-  build-and-commit:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Run Python script to fetch and test configs
-        env:
-          CONFIG_URLS: ${{ secrets.CONFIG_URLS }}
-        run: python main.py
-
-      - name: Commit and push if changed
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add v2ray_configs.txt
-          if ! git diff --staged --quiet; then
-            git commit -m "Update active configs [$(date)]"
-            git push
-            echo "✅ New active configs committed and pushed."
-          else
-            echo "ℹ️ No changes to commit."
-          fi
