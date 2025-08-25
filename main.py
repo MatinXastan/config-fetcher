@@ -39,7 +39,7 @@ COUNTRY_ALIASES = {
 def fetch_and_decode_content(url):
     """محتوای یک URL را دریافت کرده و اگر با Base64 کد شده باشد، آن را دیکود می‌کند."""
     try:
-        response = requests.get(url, timeout=15)
+        response = requests.get(url, timeout=20)
         response.raise_for_status()
         content = response.text
         try:
@@ -125,7 +125,7 @@ def main():
     valid_protocols = ('vless://', 'vmess://', 'ss://', 'ssr://', 'trojan://', 'tuic://', 'hysteria://', 'hysteria2://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
     
-    # --- حذف هوشمند تکراری‌ها ---
+    # --- حذف هوشمند تکراری‌ها در همان ابتدا ---
     unique_configs = remove_duplicates(initial_valid_configs)
     
     print(f"\nFound {len(unique_configs)} unique configs. Now sorting...")
