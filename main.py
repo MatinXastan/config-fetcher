@@ -1,12 +1,29 @@
 import os
 import requests
 import base64
-import socket
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict
+
+# --- دیکشنری برای نگاشت کدهای کشور به نام کامل ---
+# این لیست را می‌توانید در آینده کامل‌تر کنید
+COUNTRY_MAP = {
+    "DE": "Germany", "🇩🇪": "Germany",
+    "US": "USA", "🇺🇸": "USA",
+    "NL": "Netherlands", "🇳🇱": "Netherlands",
+    "FR": "France", "🇫🇷": "France",
+    "GB": "UK", "🇬🇧": "UK",
+    "CA": "Canada", "🇨🇦": "Canada",
+    "JP": "Japan", "🇯🇵": "Japan",
+    "SG": "Singapore", "🇸🇬": "Singapore",
+    "FI": "Finland", "🇫🇮": "Finland",
+    "IR": "Iran", "🇮🇷": "Iran",
+    "TR": "Turkey", "🇹🇷": "Turkey",
+    "RU": "Russia", "🇷🇺": "Russia",
+    # ... می‌توانید کشورهای بیشتری اضافه کنید
+}
 
 def fetch_and_decode_content(url):
-    # Fetches content from a URL and decodes it if it's Base64 encoded.
+    """محتوای یک URL را دریافت کرده و اگر با Base64 کد شده باشد، آن را دیکود می‌کند."""
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -20,60 +37,8 @@ def fetch_and_decode_content(url):
         print(f"Error fetching from {url}: {e}")
         return []
 
-def extract_ip_port(config_uri):
-    # Extracts IP address and port from a config URI.
-    try:
-        # For vless/trojan: vless://uuid@ip:port...
-        match = re.search(r'(vless|trojan)://.*?@(.*?):(\d+)', config_uri)
-        if match:
-            # For domain names, resolve to IP first
-            hostname = match.group(2)
-            try:
-                ip_address = socket.gethostbyname(hostname)
-                return ip_address, int(match.group(3))
-            except socket.gaierror:
-                return None, None # Could not resolve domain
-
-        # For vmess (which is base64 encoded)
-        if config_uri.startswith('vmess://'):
-            try:
-                decoded_part = base64.b64decode(config_uri[8:]).decode('utf-8')
-                add_match = re.search(r'"add":"(.*?)"', decoded_part)
-                port_match = re.search(r'"port":"(\d+)"', decoded_part)
-                if add_match and port_match:
-                    hostname = add_match.group(1)
-                    try:
-                        ip_address = socket.gethostbyname(hostname)
-                        return ip_address, int(port_match.group(1))
-                    except socket.gaierror:
-                        return None, None # Could not resolve domain
-            except Exception:
-                return None, None
-    except Exception:
-        return None, None
-    return None, None
-
-def check_server_connectivity(server_ip, port, timeout=2):
-    # Checks if a TCP connection can be established to a specific IP and port.
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(timeout)
-            s.connect((server_ip, port))
-        return True
-    except (socket.timeout, ConnectionRefusedError, OSError):
-        return False
-
-def test_config(config):
-    # Tests a single config and returns it if it's active.
-    ip, port = extract_ip_port(config)
-    if ip and port:
-        if check_server_connectivity(ip, port):
-            print(f"  [SUCCESS] {ip}:{port} is reachable.")
-            return config
-    return None
-
 def main():
-    # Main function to run the script.
+    """تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند."""
     urls_str = os.environ.get('CONFIG_URLS')
     if not urls_str:
         print("CONFIG_URLS secret not found or is empty.")
@@ -90,32 +55,56 @@ def main():
             if configs:
                 all_configs.extend(configs)
 
-    # Filter valid protocols and remove duplicates
-    valid_protocols = ('vless://', 'vmess://', 'trojan://')
+    # فیلتر کردن کانفیگ‌های معتبر و حذف تکراری‌ها
+    valid_protocols = ('vless://', 'vmess://', 'ss://', 'trojan://', 'tuic://')
     initial_valid_configs = [c for c in all_configs if c and c.strip().startswith(valid_protocols)]
     unique_configs = list(dict.fromkeys(initial_valid_configs))
     
-    print(f"\nFound {len(unique_configs)} unique configs. Now testing connectivity...")
-    
-    active_configs = []
-    # Use a thread pool to test configs concurrently for speed
-    with ThreadPoolExecutor(max_workers=50) as executor:
-        future_to_config = {executor.submit(test_config, config): config for config in unique_configs}
-        for future in as_completed(future_to_config):
-            result = future.result()
-            if result:
-                active_configs.append(result)
+    print(f"\nFound {len(unique_configs)} unique configs. Now sorting...")
 
-    if active_configs:
-        output_filename = 'v2ray_configs.txt'
-        with open(output_filename, 'w', encoding='utf-8') as f:
-            for config in active_configs:
+    # --- بخش دسته‌بندی ---
+    by_protocol = defaultdict(list)
+    by_country = defaultdict(list)
+
+    for config in unique_configs:
+        # ۱. دسته‌بندی بر اساس پروتکل
+        proto = config.split('://')[0]
+        by_protocol[proto.upper()].append(config)
+
+        # ۲. دسته‌بندی بر اساس کشور
+        remark = config.split('#')[-1] # بخش بعد از #
+        found_country = False
+        for code, name in COUNTRY_MAP.items():
+            if code in remark:
+                by_country[name].append(config)
+                found_country = True
+                break # با پیدا کردن اولین کشور، از حلقه خارج شو
+        if not found_country:
+            by_country["Unknown"].append(config)
+            
+    # --- بخش نوشتن فایل‌ها ---
+    # نوشتن فایل کلی
+    with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
+        for config in unique_configs:
+            f.write(config + '\n')
+    
+    # ایجاد پوشه‌ها
+    os.makedirs('sub/protocol', exist_ok=True)
+    os.makedirs('sub/country', exist_ok=True)
+
+    # نوشتن فایل‌های پروتکل
+    for proto, configs in by_protocol.items():
+        with open(f'sub/protocol/{proto}.txt', 'w', encoding='utf-8') as f:
+            for config in configs:
                 f.write(config + '\n')
-        
-        print(f"\n✅ Success! Found {len(active_configs)} active configs.")
-        print(f"Output saved to '{output_filename}'.")
-    else:
-        print("\n⚠️ No active configs found after testing.")
+    
+    # نوشتن فایل‌های کشور
+    for country, configs in by_country.items():
+        with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
+            for config in configs:
+                f.write(config + '\n')
+
+    print("\n✅ Success! All configs have been sorted and saved.")
 
 if __name__ == "__main__":
     main()
