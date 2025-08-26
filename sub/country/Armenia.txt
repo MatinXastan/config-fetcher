@@ -1,1 +1,0 @@
-vless://909d4490-6cbb-4006-9dbd-3c7f5d79cfda@warning.root.info.tr:443?security=reality&encryption=none&pbk=D5_j99ZSJtC9MdMQGCWlVvUU0p8KRgHZ2ZEnv2z2FWU&headerType=none&fp=ios&spx=/software/windows/&type=tcp&sni=sourceforge.net&sid=b8fc40ff6d873611#🇦🇲 AM | 🔒 VLESS | @netmellianti [15]
