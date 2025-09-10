@@ -1,1 +1,2 @@
+vless://08016b13-fb33-4b61-9608-cf79d5e27414@pl.panelmarzban.com:3038?security=reality&encryption=none&pbk=21V_VkMUD2XRbyRDg7hjpblUAwxHvlLmbarATdhhJQI&headerType=none&fp=firefox&type=tcp&sni=refersion.com#🇵🇱 PL | 🔒 VLESS | @config_proxy [55]
 vless://fd3c5105-a311-4f27-a8f9-aafa43519d48@25.grizzzlyyyy.ir:31744?encryption=none&security=reality&sni=init.itunes.apple.com&fp=ios&pbk=wzVTHc8AVy3DCkAhNrAayePA82teKZ0A2ckdPI3xsSk&sid=b9&spx=/&type=xhttp&host=25.grizzzlyyyy.ir&path=/grizzlyyyy&mode=auto#🇵🇱 PL | 🔒 VLESS | @grizzlyvpn [2]
