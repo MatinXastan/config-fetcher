@@ -1,2 +1,0 @@
-vless://d8dd94fd-540e-461d-b5d4-acebef02c22a@188.92.28.204:34045?security=reality&encryption=none&pbk=cDaDzPr3PlS3NM8lreHZbdo-Mhqz8vMBzMSkHXhGIUA&headerType=none&type=tcp&sni=visit-this-invitation-link-to-join-tg-enkelte-notif.ekt.me&sid=e8ab71d0#🇫🇷 FR | 🔒 VLESS | @freakconfig [10]
-vless://baadf496-921b-41b1-a7ae-fde0ddc6793d@140.82.54.120:443?type=tcp&security=reality&pbk=0O2wxSFr76Y9Sp2y5Bc1shI5yA1rkp1zKHZbkKsOE3E&fp=firefox&sni=*.zarairan.top&sid=28e21203&spx=/&flow=xtls-rprx-vision#🇫🇷 FR | 🔒 VLESS | @qeshmserver [8]

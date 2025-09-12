@@ -1,2 +1,0 @@
-vless://2fd1b67f-bc9e-4a66-a4c3-73599997d001@85.239.60.43:8443?security=reality&fp=chrome&type=tcp&flow=xtls-rprx-vision&pbk=qJ_x7_Fz3M4QdnRG8WcqVNpgsHbwWgs_KrdCqr4iclE&sni=google.com#🇬🇧 GB | 🔒 VLESS | @proxycrone [1]
-vless://3d72057d-54c5-4d51-ade5-a872c1032b75@45.76.136.227:4403?type=grpc&serviceName=&security=reality&pbk=y1hXOgI6F-rUsm6UvVmZpRxqZi1JbktKw7yr4k8lr2o&fp=chrome&sni=www.foursquare.com&sid=c52a2c73&spx=/#🇬🇧 GB | 🔒 VLESS | @qeshmserver [2]

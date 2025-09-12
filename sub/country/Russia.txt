@@ -1,2 +1,0 @@
-vless://6fae85ca-395a-4f27-9eb2-75123befc475@185.200.240.188:443?flow=xtls-rprx-vision&type=tcp&headerType=none&security=reality&fp=chrome&sni=ru.sfasti.ru&pbk=J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8&sid=16895459a2c7768d#🇷🇺 RU | 🔒 VLESS | @kafing_2 [13]
-vless://2f8179a0-c0ea-4f8a-97fc-39af16d2bfc5@5.42.77.71:443?security=reality&encryption=none&pbk=3q2rJ0IljIdNL0YvlAy7TwqtnPCr1woQv9KjoHjG3gE&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.datadoghq.com&sid=366e5433f6196a6f#🇷🇺 RU | 🔒 VLESS | @proxyfn [17]
