@@ -1,3 +1,4 @@
+vless://6cbfa017-c5d5-4316-a367-1e02091a8de6@85.239.60.43:8443?security=reality&fp=chrome&type=tcp&flow=xtls-rprx-vision&pbk=qJ_x7_Fz3M4QdnRG8WcqVNpgsHbwWgs_KrdCqr4iclE&sni=google.com#🇬🇧 GB | 🔒 VLESS | @config_proxy [41]
 vless://f93405f5-b64f-40ba-a4da-140b994d511f@143.110.169.55:40987?type=tcp&security=reality&pbk=sO6z1TtkOVNB1lhlsqoBj6lsR_0IyEsfWTXj-YXlCHQ&fp=firefox&sni=*.sourceforge.net&sid=d3043362&spx=/#🇬🇧 GB | 🔒 VLESS | @jokerv2ray [11]
 vless://16f9a0c4-6686-4128-b5c7-fe51c4229113@143.110.169.62:57599?type=tcp&security=reality&pbk=2Yw1JllwNzE4VoRQP5QYA8OfB2Hy8TCNi5R4ZtpA0hk&fp=firefox&sni=*.sourceforge.net&sid=64115850&spx=/#🇬🇧 GB | 🔒 VLESS | @jokerv2ray [12]
 vless://97a3b0e9-f44f-4dad-96af-40a14b3ae680@143.110.169.66:26329?type=tcp&security=reality&pbk=ir5yuFXmp49WTWAsoD_mxmfbPf6lROEmzcgrCpopWDc&fp=firefox&sni=*.sourceforge.net&sid=7ea2155d&spx=/#🇬🇧 GB | 🔒 VLESS | @jokerv2ray [13]
