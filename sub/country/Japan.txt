@@ -1,1 +1,2 @@
 vless://4d25bdfd-2312-4679-93d1-258c7cb1ef09@172.235.196.102:443?security=reality&encryption=none&pbk=-dus6PBmNy04rl8GEWFSvgedd_Y8HpmfsGBYRtVV_g0&headerType=none&fp=chrome&spx=/&type=tcp&sni=wikipedia.org&sid=498625#🇯🇵 JP | 🔒 VLESS | @free4allvpn [12]
+vless://a64d1cba-13a8-4179-8139-96790c759389@138.2.58.99:40000?security=reality&flow=xtls-rprx-vision&sni=www.python.org&type=tcp&fp=ios&pbk=qCaV2kI9Oxts987YzeFkyyQHMnJnd5YA1GJuAkRVImg&sid=19e5124d#🇯🇵 JP | 🔒 VLESS | @hope_net [10]
