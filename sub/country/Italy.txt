@@ -1,1 +1,0 @@
-vless://3e7f67de-648e-4871-b51a-a225214d41ee@147.45.51.160:443?encryption=none&type=tcp&headerType=none&security=reality&fp=chrome&sni=api.company-target.com&pbk=TRP10HqKUXEQ3O-cfsq93DycfBmbJe9KM36yvSa8Mmw#🇮🇹 IT | 🔒 VLESS | @config_proxy [54]
