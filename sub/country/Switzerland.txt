@@ -1,2 +1,1 @@
 vless://cdb38f5b-12c3-414b-eacd-a635dc633701@193.168.144.46:443?mode=gun&security=reality&encryption=none&pbk=rsoZpDByMW3Ukcj68I5vw_-k-CivE6CV6TPJxyPl6WY&fp=chrome&spx=/storage&type=grpc&serviceName=&sni=mega.io&sid=07a9a22b#🇨🇭 CH | 🔒 VLESS | @proxyfn [13]
-vless://8f0120f1-ba26-e137-5e06-a99b844741aa@swit-serv1.ip-venzo.com:223?security=reality&encryption=none&pbk=2hoQE6WBJlr4DHrp7TxqPOT8i24iodEaCQp-qugbD3U&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=www.cloudflare.com&sid=e41865e506628f44#🇨🇭 CH | 🔒 VLESS | @mowjproxy [1]
