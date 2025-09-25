@@ -1,2 +1,1 @@
 vless://414df689-dc19-418b-849c-f0f15967d71e@uae.kitten-tube.com:443?security=reality&encryption=none&pbk=ljzfoaXVBSNu3tw58-B0WNViso1aA9JSCX9GUcMDu0k&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=adobe.com&sid=4048A3da#🇦🇪 AE | 🔒 VLESS | @iran_access [14]
-vless://af4b661e-c280-4642-a820-df8d01bebc6b@uae-server1-panyous.tap30.sbs:2560?security=reality&encryption=none&pbk=2hoQE6WBJlr4DHrp7TxqPOT8i24iodEaCQp-qugbD3U&headerType=none&fp=firefox&spx=/&type=tcp&sni=cloudflare.com&sid=e41865e506628f44#🇦🇪 AE | 🔒 VLESS | @v2raych [17]
