@@ -1,3 +1,2 @@
-vless://af48933a-0d3d-440a-a981-70297834e6e3@91.242.241.45:8443?security=reality&fp=chrome&type=tcp&flow=xtls-rprx-vision&pbk=1-2fy8f8XeOHzmdFmCENHV1mr_tzJX1M9UXp42mUIiM&sni=google.com#🇸🇬 SG | 🔒 VLESS | @config_proxy [44]
 vless://73bf4bac-98cf-4423-b728-3cc8a0e56424@139.180.146.164:2020?type=tcp&security=reality&pbk=YH_SRHZR1KpI5H1qwcqwp3_8lYSWWMZYWn_FStgKihc&fp=chrome&sni=ea.com&sid=05fb89d5&spx=/&flow=xtls-rprx-vision#🇸🇬 SG | 🔒 VLESS | @qeshmserver [3]
 vless://9d33dc91-fb84-4f96-d9b1-fe28a230a94f@5.223.42.211:443?security=reality&encryption=none&pbk=fXxqq2kGD1gwVUdFEHMtyxDudwQgQRWYz_YM02ONiW8&headerType=none&fp=chrome&spx=/x1&type=tcp&sni=www.faceit.com&sid=f7#🇸🇬 SG | 🔒 VLESS | @v2rayexpress [6]
