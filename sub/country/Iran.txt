@@ -1,2 +1,1 @@
 vless://271fe692-5e0c-4d89-ec60-8afa3b78efd4@81.30.98.122:8080?type=http&path=/&host=wWw.google.cOm,SpeedTest.NET,teslascope.com,bonviveur.es&security=reality&pbk=9rQjZQEE-PpIqLVBoP1uAvr7gSWKTAHFic1CVVlfqXM&fp=firefox&sni=Www.SPeedTesT.NEt&sid=90928c15&spx=/#🇮🇷 IR | 🔒 VLESS | @v2rayexpress [3]
-vless://7dce8d5d-5cfc-40e6-aec2-d30433c3f8ac@v2.shopleni.sbs:20440?type=tcp&security=reality&fp=chrome&pbk=ntZ4WJkqibGMYe10myzBora7mNlLvvp09U-tsOyLJWQ&sni=tgju.org&sid=f248db&spx=/#🇮🇷 IR | 🔒 VLESS | @config_proxy [45]
