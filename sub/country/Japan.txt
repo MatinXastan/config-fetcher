@@ -1,2 +1,1 @@
-vless://1abaa2b6-ab8c-4525-8c91-b73bc2ab2b37@147.45.49.17:8080?type=tcp&encryption=none&flow=&sni=yandex.com&fp=chrome&security=reality&pbk=iPjWLvXWt7ABJaSRRwzjgLrvlJlwoYQZN8zF-G3D-Qs&sid=27cfa05000c23cc4#🇯🇵 JP | 🔒 VLESS | @config_proxy [36]
 vless://4d25bdfd-2312-4679-93d1-258c7cb1ef09@172.235.196.102:443?security=reality&encryption=none&pbk=-dus6PBmNy04rl8GEWFSvgedd_Y8HpmfsGBYRtVV_g0&headerType=none&fp=chrome&spx=/&type=tcp&sni=wikipedia.org&sid=498625#🇯🇵 JP | 🔒 VLESS | @free4allvpn [10]
