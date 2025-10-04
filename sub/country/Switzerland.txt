@@ -1,2 +1,0 @@
-vless://cdb38f5b-12c3-414b-eacd-a635dc633701@193.168.144.46:443?mode=gun&security=reality&encryption=none&pbk=rsoZpDByMW3Ukcj68I5vw_-k-CivE6CV6TPJxyPl6WY&fp=chrome&spx=/storage&type=grpc&serviceName=&sni=mega.io&sid=07a9a22b#🇨🇭 CH | 🔒 VLESS | @proxyfn [13]
-vless://5dda3a28-68e7-0afa-626d-d1d6f4ad4f71@cdn1.bazicore.ir:443?security=reality&encryption=none&pbk=AUg2h16X8xP5s7tnkcDuyfX5CBV7WvCoY48OKhbtQyw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=tgju.org&sid=821bbc44dd7a4e15#🇨🇭 CH | 🔒 VLESS | @manzariyeh_rasht [19]
