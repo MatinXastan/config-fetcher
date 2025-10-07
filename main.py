@@ -5,7 +5,7 @@ import re
 import json
 import shutil
 from collections import defaultdict
-from urllib.parse import unquote, urlparse, parse_qs
+from urllib.parse import unquote, urlparse, parse_qs, urlencode
 
 # --- دیکشنری کامل‌تر برای نگاشت کدهای کشور به نام کامل ---
 COUNTRY_ALIASES = {
@@ -39,68 +39,81 @@ COUNTRY_ALIASES = {
 def fetch_and_decode_content(url):
     """محتوای یک URL را دریافت کرده و اگر با Base64 کد شده باشد، آن را دیکود می‌کند."""
     try:
-        response = requests.get(url, timeout=20)
+        # افزایش timeout برای افزایش احتمال موفقیت
+        response = requests.get(url, timeout=30) 
         response.raise_for_status()
         content = response.text
         try:
+            # دیکود Base64
             decoded_content = base64.b64decode(content.strip()).decode('utf-8')
             return decoded_content.strip().split('\n')
         except Exception:
+            # اگر Base64 نبود، محتوای خام را برمی‌گرداند
             return content.strip().split('\n')
     except requests.exceptions.RequestException as e:
         print(f"Error fetching from {url}: {e}")
         return []
 
 def get_remark_from_config(config):
-    """نام کانفیگ (remark/ps) را از انواع کانفیگ استخراج می‌کند."""
+    """نام کانفیگ (remark/ps) را از انواع کانفیگ استخراج می‌کند (برای مرحله تشخیص کشور)."""
     remark = ''
     try:
+        # 1. استخراج از بخش fragment (#) برای اکثر پروتکل‌ها
         if '#' in config:
             remark += " " + unquote(config.split('#', 1)[-1])
         
+        # 2. استخراج از داخل payload برای vmess
         if config.startswith('vmess://'):
             b64_part = config[8:]
+            # برای اطمینان از صحت دیکود، padding اضافه می‌شود
             b64_part += '=' * (-len(b64_part) % 4)
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
             remark += " " + vmess_data.get('ps', '')
-    except Exception:
+    except Exception as e:
+        #print(f"Error extracting remark: {e}")
         pass
     return remark.strip()
 
 def find_country(remark):
-    """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند."""
+    """کشور را بر اساس اولویت (ایموجی > کد > نام) در متن پیدا می‌کند و اموجی/نام کشور را برمی‌گرداند."""
+    
+    # 1. جستجو برای ایموجی
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
-            # اولویت با ایموجی‌ها
+            # ایموجی‌ها معمولاً بیش از یک کاراکتر هستند و الفبا نیستند
             if not alias.isalpha() and len(alias) > 1:
                 if alias in remark:
-                    return country_name
+                    return country_name, alias # برمی‌گرداند (نام کشور، اموجی)
+    
+    # 2. جستجو برای کدهای دو حرفی و نام کامل (در این حالت، نام کامل کشور برگردانده می‌شود)
+    tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
     
     # جستجو برای کدهای دو حرفی
-    tokens = set(re.split(r'[\s|\(\)\[\]\-_,]+', remark.upper()))
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) == 2 and alias.isalpha() and alias.upper() in tokens:
-                return country_name
+                return country_name, country_name # برمی‌گرداند (نام کشور، نام کامل کشور)
 
     # جستجو برای نام کامل کشور
     for country_name, aliases in COUNTRY_ALIASES.items():
         for alias in aliases:
             if len(alias) > 2 and alias.isalpha():
+                # regex برای جستجوی دقیق کلمه
                 pattern = r'(?<![a-zA-Z0-9])' + re.escape(alias) + r'(?![a-zA-Z0-9])'
                 if re.search(pattern, remark, re.IGNORECASE):
-                    return country_name
-    return None
+                    return country_name, country_name # برمی‌گرداند (نام کشور، نام کامل کشور)
+                    
+    return None, None
 
 def get_config_identifier(config):
     """یک شناسه منحصر به فرد (اثر انگشت) برای هر کانفیگ بر اساس اطلاعات اصلی سرور ایجاد می‌کند."""
     try:
+        # برای vmess
         if config.startswith('vmess://'):
             b64_part = config.split('://')[1]
             if '#' in b64_part:
                 b64_part = b64_part.split('#')[0]
-            
             b64_part += '=' * (-len(b64_part) % 4)
             decoded_part = base64.b64decode(b64_part).decode('utf-8')
             vmess_data = json.loads(decoded_part)
@@ -116,7 +129,7 @@ def get_config_identifier(config):
             )
             return f"vmess://{str(identifier_tuple)}"
 
-        # --- منطق جدید و هوشمند برای کانفیگ‌های مبتنی بر URL ---
+        # برای سایر پروتکل‌ها (VLESS, SS, Trojan و...)
         config_no_fragment = config.split('#', 1)[0]
         parsed_url = urlparse(config_no_fragment)
         
@@ -156,6 +169,73 @@ def remove_duplicates(configs):
             unique_list.append(config)
     return unique_list
 
+def modify_config_remark(config, new_remark):
+    """یک کانفیگ را دریافت کرده و بخش ریمارک (#...) آن را با new_remark جایگزین می‌کند."""
+    
+    # 1. بخش هش (fragment) را حذف می‌کند
+    config_no_fragment = config.split('#', 1)[0]
+    
+    # 2. ریمارک جدید را اضافه می‌کند. باید URL-encode شود.
+    # توجه: برای سابسکریپشن‌های V2Ray، ریمارک معمولاً نباید انکود شود،
+    # اما در اینجا برای اطمینان از رفتار صحیح در URL، این کار انجام می‌شود.
+    # با این حال، چون V2Ray عموماً انکود شده نمی‌خواهد، new_remark را مستقیماً اضافه می‌کنیم.
+    
+    # برای VLESS, Trojan و ... که ریمارک در پایان URL قرار دارد
+    if not config.startswith('vmess://'):
+        return f"{config_no_fragment}#{new_remark}"
+
+    # برای VMess
+    try:
+        # دیکود کردن payload اصلی vmess
+        b64_part = config.split('://')[1]
+        if '#' in b64_part:
+            b64_part = b64_part.split('#')[0]
+        b64_part += '=' * (-len(b64_part) % 4)
+        decoded_part = base64.b64decode(b64_part).decode('utf-8')
+        vmess_data = json.loads(decoded_part)
+        
+        # تغییر 'ps' (ریمارک/نام سرور) در JSON
+        vmess_data['ps'] = new_remark
+        
+        # کد کردن مجدد و ساخت کانفیگ جدید
+        new_b64_part = base64.b64encode(json.dumps(vmess_data).encode('utf-8')).decode('utf-8').strip('=')
+        return f"vmess://{new_b64_part}"
+        
+    except Exception as e:
+        print(f"Error modifying vmess config: {e}. Falling back to adding fragment.")
+        # اگر خطا رخ داد، fallback به اضافه کردن fragment (که ممکن است کار نکند)
+        return f"{config_no_fragment}#{new_remark}"
+
+def get_server_host(config):
+    """آدرس سرور (IP یا دامنه) را برای استفاده به عنوان ریمارک در حالت 'Unknown' استخراج می‌کند."""
+    try:
+        # برای vmess
+        if config.startswith('vmess://'):
+            b64_part = config.split('://')[1]
+            if '#' in b64_part:
+                b64_part = b64_part.split('#')[0]
+            b64_part += '=' * (-len(b64_part) % 4)
+            decoded_part = base64.b64decode(b64_part).decode('utf-8')
+            vmess_data = json.loads(decoded_part)
+            return vmess_data.get('add', 'vmess-server')
+            
+        # برای سایر پروتکل‌ها
+        config_no_fragment = config.split('#', 1)[0]
+        parsed_url = urlparse(config_no_fragment)
+        
+        # اگر هاست وجود داشت، آن را برمی‌گرداند، در غیر این صورت پروتکل + پورت را برمی‌گرداند
+        host = parsed_url.hostname
+        port = parsed_url.port
+        
+        if host:
+            return host
+        
+        return f"{parsed_url.scheme}://{port or 'port-unknown'}"
+        
+    except Exception:
+        return "Unknown-Server" # در صورت خطا، یک نام عمومی برمی‌گرداند
+
+
 def main():
     """تابع اصلی برنامه که تمام مراحل را مدیریت می‌کند."""
     urls_str = os.environ.get('CONFIG_URLS')
@@ -179,22 +259,39 @@ def main():
     
     unique_configs = remove_duplicates(initial_valid_configs)
     
-    print(f"\nFound {len(unique_configs)} unique configs. Now sorting...")
+    print(f"\nFound {len(unique_configs)} unique configs. Now modifying remarks and sorting...")
 
     by_protocol = defaultdict(list)
     by_country = defaultdict(list)
+    modified_unique_configs = [] # لیست جدید برای نگهداری کانفیگ‌های با ریمارک اصلاح شده
 
     for config in unique_configs:
-        proto = config.split('://')[0]
-        by_protocol[proto.upper()].append(config)
-
-        remark = get_remark_from_config(config)
-        country = find_country(remark)
+        original_remark = get_remark_from_config(config)
         
-        if country:
-            by_country[country].append(config)
+        country_name, country_identifier = find_country(original_remark)
+        
+        new_remark = ""
+        
+        if country_identifier:
+            # اگر کشور پیدا شد (اعم از اموجی یا نام کامل)، ریمارک جدید را فقط با آن تنظیم می‌کند
+            new_remark = country_identifier 
+            
+            # بر اساس نام کشور (country_name) برای پوشه‌بندی در by_country استفاده می‌شود
+            country_for_sorting = country_name 
+            
         else:
-            by_country["Unknown"].append(config)
+            # اگر کشور پیدا نشد، ریمارک جدید را آدرس سرور (IP/Domain) قرار می‌دهد
+            new_remark = get_server_host(config)
+            country_for_sorting = "Unknown" # برای پوشه‌بندی
+
+        # ایجاد کانفیگ جدید با ریمارک تمیز شده
+        modified_config = modify_config_remark(config, new_remark)
+        modified_unique_configs.append(modified_config)
+        
+        # ذخیره کانفیگ اصلاح شده برای دسته‌بندی
+        proto = modified_config.split('://')[0]
+        by_protocol[proto.upper()].append(modified_config)
+        by_country[country_for_sorting].append(modified_config)
             
     # حذف و ایجاد مجدد پوشه‌ها
     if os.path.exists('sub'):
@@ -202,16 +299,16 @@ def main():
         
     os.makedirs('sub/protocol', exist_ok=True)
     os.makedirs('sub/country', exist_ok=True)
-    os.makedirs('sub/split', exist_ok=True) # --- پوشه جدید برای فایل‌های تقسیم‌شده
+    os.makedirs('sub/split', exist_ok=True)
 
-    # نوشتن همه کانفیگ‌های منحصر به فرد در یک فایل
+    # نوشتن همه کانفیگ‌های منحصر به فرد با ریمارک اصلاح شده در یک فایل
     with open('v2ray_configs.txt', 'w', encoding='utf-8') as f:
-        f.write('\n'.join(unique_configs))
+        f.write('\n'.join(modified_unique_configs))
     
-    # --- بخش جدید: تقسیم فایل اصلی به فایل‌های کوچک‌تر ---
+    # --- بخش: تقسیم فایل اصلی به فایل‌های کوچک‌تر ---
     chunk_size = 100
-    for i in range(0, len(unique_configs), chunk_size):
-        chunk = unique_configs[i:i + chunk_size]
+    for i in range(0, len(modified_unique_configs), chunk_size):
+        chunk = modified_unique_configs[i:i + chunk_size]
         file_path = f'sub/split/v2ray_configs_{i // chunk_size + 1}.txt'
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(chunk))
@@ -229,7 +326,7 @@ def main():
             with open(f'sub/country/{country}.txt', 'w', encoding='utf-8') as f:
                 f.write('\n'.join(configs))
 
-    print("\n✅ Success! All configs have been sorted accurately and saved.")
+    print("\n✅ Success! All configs have been cleaned, sorted, and saved.")
 
 if __name__ == "__main__":
     main()
