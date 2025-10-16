@@ -1,3 +1,4 @@
+vless://df0680ca-e43c-498d-ed86-8e196eedd012@94.131.118.98:8880?mode=gun&security=&encryption=none&type=grpc#🇫🇷
+vless://df0680ca-e43c-498d-ed86-8e196eedd012@194.4.49.222:8880?mode=gun&security=&encryption=none&fp=chrome&type=grpc#🇫🇷
 vmess://eyJhZGQiOiAiMjAwMTpiYzg6MzJkNzozMDI6OjEwIiwgImFpZCI6ICIwIiwgImFscG4iOiAiIiwgImZwIjogIiIsICJob3N0IjogIiIsICJpZCI6ICI4ZTM0ZTE3MC0xM2FlLTQ4OTItOWQyMC0wNTk2MmFjYzlmODQiLCAibmV0IjogIndzIiwgInBhdGgiOiAiIiwgInBvcnQiOiAiNDQ1NzkiLCAicHMiOiAiXHVkODNjXHVkZGViXHVkODNjXHVkZGY3IiwgInNjeSI6ICJhdXRvIiwgInNuaSI6ICIiLCAidGxzIjogIiIsICJ0eXBlIjogIi0tLSIsICJ2IjogIjIifQ
-vless://df0680ca-e43c-498d-ed86-8e196eedd012@195.42.233.69:8880?mode=gun&security=none&encryption=none&fp=chrome&type=grpc#🇫🇷
 vless://df0680ca-e43c-498d-ed86-8e196eedd012@638927678654211750.rasht-drc-tusabn.info:8880?mode=gun&security=none&encryption=none&type=grpc#🇫🇷
