@@ -1,1 +1,0 @@
-trojan://auto@dcf741e8.epeius-2gy.pages.dev:443?path=%2F%3Fed%3D2560&security=tls&host=dcf741e8.epeius-2gy.pages.dev&type=ws&sni=dcf741e8.epeius-2gy.pages.dev#dcf741e8.epeius-2gy.pages.dev
