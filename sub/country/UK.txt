@@ -1,1 +1,1 @@
-ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpiMkVKdWNvbkM0NjBLbGxO@azjnac1.uksouth.cloudapp.azure.com:443#🇬🇧
+vless://7168e209-85df-4602-819e-a41560059b74@www.speedtest.net:443?path=%2F&security=tls&encryption=none&host=gur-pedar-khamenei.pages.dev&type=ws&sni=gur-pedar-khamenei.pages.dev#🇬🇧
