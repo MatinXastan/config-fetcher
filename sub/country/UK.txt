@@ -1,2 +1,1 @@
-vless://7168e209-85df-4602-819e-a41560059b74@www.speedtest.net:443?path=%2F&security=tls&encryption=none&host=gur-pedar-khamenei.pages.dev&type=ws&sni=gur-pedar-khamenei.pages.dev#🇬🇧
 vmess://eyJhZGQiOiAiNTQuMzYuMTYzLjIxNiIsICJhaWQiOiAiMCIsICJhbHBuIjogIiIsICJmcCI6ICIiLCAiaG9zdCI6ICIiLCAiaWQiOiAiZmZhZTdmZmUtYzEzYS00ZWYxLWFhYjQtZTNlMDAxZGNjZjI3IiwgIm5ldCI6ICJ0Y3AiLCAicGF0aCI6ICIiLCAicG9ydCI6ICI1NTAiLCAicHMiOiAiVW5pdGVkIEtpbmdkb20iLCAic2N5IjogImF1dG8iLCAic25pIjogIiIsICJ0bHMiOiAiIiwgInR5cGUiOiAibm9uZSIsICJ2IjogIjIifQ
