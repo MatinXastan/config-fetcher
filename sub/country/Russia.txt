@@ -1,0 +1,1 @@
+vless://c13fea6e-e1bb-44e3-a163-dcaf9a279f22@a.ru.maviks.ru:443?security=reality&type=tcp&headerType=&flow=xtls-rprx-vision&path=&host=&sni=maviks.ru&fp=chrome&pbk=cGzNRbN_zruI3CVTDukB2nOqWWEj7kgkay24f2fdLmQ&sid=0f917152a871e9c0#🇷🇺
