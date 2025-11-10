@@ -1,4 +1,3 @@
-vless://8849bd5c-cf1d-477d-af5b-d3de3b5c6e1b@ir.ihomestore.sbs:2096?security=none&encryption=none&host=fast.com&headerType=http&type=tcp#🇩🇪
 vless://520f26c0-f884-44f9-9351-26a51ff2b137@germ.abrhide.ir:9107?security=reality&encryption=none&pbk=Go_wk-NFoenM3xuCSQ84_0Lzh3Y6XrHzTz8XTbQl8lI&headerType=none&fp=firefox&type=tcp&sni=refersion.com&sid=e8ef8df79e4a6343#🇩🇪
 vless://520f26c0-f884-44f9-9351-26a51ff2b137@151.101.3.8:80?mode=packet-up&path=%2F&security=&encryption=none&extra=%7B%22scMaxEachPostBytes%22%3A%2033554432%2C%20%22scMaxConcurrentPosts%22%3A%202048%2C%20%22scMinPostsIntervalMs%22%3A%201%2C%20%22xPaddingBytes%22%3A%20%22200-3000%22%2C%20%22noGRPCHeader%22%3A%20true%7D&host=data.server-abr.net&type=xhttp#🇩🇪
 vless://9e460075-dcb2-504a-b3d9-aab5c3095442@185.140.14.166:8443?security=reality&encryption=none&pbk=qdcM4h1uoHcpGw_QnU99NnUXgcjDFyoE-E1_Ili3Xgo&headerType=none&fp=chrome&type=tcp&sni=www.microsoft.com&sid=3471fa2412678660#🇩🇪
