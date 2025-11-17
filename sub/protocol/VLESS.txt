@@ -1,4 +1,3 @@
-vless://7d18fc67-1994-4f7e-8ff8-c024223f33bb@104.17.228.60:443?path=%2Fcbde4058-6b81-432b-8689-dd7ce10e479c&security=tls&encryption=none&host=revcloud.migacpi.org&type=ws&sni=revcloud.migacpi.org#🇳🇱
 vless://0e8a6896-ad90-4a3b-89a3-77d64aa409e2@ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz:443?security=reality&encryption=none&pbk=YVDo7U4O-AT2fa5H9E7hyYHKgfZd1vB6UdbAf2ggWQE&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=i2pd.website&sid=55e6af1a35e64a98#ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz
 vless://c495405a-41d7-429e-b999-94136197b211@104.21.7.162:2053?path=%2FJ5aLQOY1R9ONWYCM&security=tls&encryption=none&host=dashboard.app-browser.org&type=ws&sni=dashboard.app-browser.org#🇫🇮
 vless://74a4f351-1f64-4a24-98ac-a1a86dba7f4c@104.21.5.65:8443?path=%2FJ5aKLOY1R9ONWYCM&security=tls&encryption=none&host=dedi.besttotaldns.com&type=ws&sni=dedi.besttotaldns.com#🇫🇮
@@ -11,9 +10,7 @@ vless://e4824193-4f54-453b-d037-88368e85ef0e@all.tellmethetrue.shop:443?mode=gun
 vless://5cd31a40-32d7-4db8-8772-79e0f55ffa21@172.67.185.98:2053?path=%2FJ5aKLOY1R9ONWYCM&security=tls&encryption=none&host=ion.api-music-fa.com&type=ws&sni=ion.api-music-fa.com#United States
 vless://b9b8cf4c-29a3-4288-9c6c-8811dc37beec@188.114.97.11:2087?path=%2F&security=tls&encryption=none&host=Xlz767V2Ray.PAGEs.DEv&fp=chrome&type=ws&sni=Xlz767V2Ray.PAGEs.DEv#188.114.97.11
 vless://adeaebbe-5719-4c28-9b11-5df0d3331c88@104.18.110.255:443?path=%2F&security=tls&encryption=none&fp=chrome&type=ws&sni=Freedom32.Pages.DEV#104.18.110.255
-vless://d91f1c5d-dfa0-4300-8f0e-e6750e5a2ff6@windrunner.fonixapp.org:42318?security=reality&encryption=none&pbk=SA_PJpEORUm3GW0C5tgF-RVgawYYa1Zc5RH4Ay9xnls&headerType=none&fp=firefox&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=ilovepdf.com&sid=ceb34988#🇦🇹
 vless://3c36eadb-747a-4166-8db0-23fec9883ea2@172.67.149.104:443?path=%2Fassets%3Fed%3D2560&security=tls&encryption=none&host=HarmonY-448.pages.DEV&fp=chrome&type=ws&sni=HarmonY-448.pages.DEV#🇸🇪
-vless://62744573-ca28-4bae-bf8e-b5915048b7af@91.84.107.88:443?security=reality&encryption=none&pbk=Tk7r4Scoti1f1Zc81x0VWJD9VB9FcTbTHUR3oyiGQV4&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.m.vk.ru&sid=210f698ddd200c86#🇳🇱
 vless://db2c8a95-f751-46e3-b05e-d2def66850fb@172.64.144.20:443?path=%2Fhttp%3A%2F%2F37.187.124.25%3A8187%2F&security=tls&encryption=none&host=ayanamirei.11160321.xyz&type=ws&sni=ayanamirei.11160321.xyz#🇫🇷
 vless://e60c6be1-42cc-472e-b35d-6568fe8a49b2@ip.mirzabox.info:2096?path=%2F&security=tls&encryption=none&host=GRouND-sloth.zulair.SIte.&type=ws&sni=GRouND-sloth.zulair.SIte.#🇬🇧
 vless://4605f8c1-4818-4fd9-9bcd-ec1fc5c47abd@172.67.136.244:8443?path=%2FB9aKBZK1R8OBYWBZ&security=tls&encryption=none&host=hint.app-browser.org&type=ws&sni=hint.app-browser.org#🇵🇱

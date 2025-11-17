@@ -1,1 +1,0 @@
-vless://d91f1c5d-dfa0-4300-8f0e-e6750e5a2ff6@windrunner.fonixapp.org:42318?security=reality&encryption=none&pbk=SA_PJpEORUm3GW0C5tgF-RVgawYYa1Zc5RH4Ay9xnls&headerType=none&fp=firefox&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=ilovepdf.com&sid=ceb34988#🇦🇹
