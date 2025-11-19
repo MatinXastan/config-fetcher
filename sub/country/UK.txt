@@ -1,1 +1,0 @@
-vless://e60c6be1-42cc-472e-b35d-6568fe8a49b2@ip.mirzabox.info:2096?path=%2F&security=tls&encryption=none&host=GRouND-sloth.zulair.SIte.&type=ws&sni=GRouND-sloth.zulair.SIte.#🇬🇧
