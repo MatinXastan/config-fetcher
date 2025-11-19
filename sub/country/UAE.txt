@@ -1,1 +1,0 @@
-vless://cd48afea-c986-415e-9efa-79d48a9a509a@dubai.fonixapp.org:19146?security=reality&encryption=none&pbk=1l-JSuTfFd5Qa5QAzbY3Iowkk3RNq_EDMLFqPDpScBI&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=stackoverflow.com&sid=0014de#🇦🇪
