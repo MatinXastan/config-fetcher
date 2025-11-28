@@ -1,1 +1,0 @@
-vless://14c9809c-8f92-4b58-9949-cf243beb9147@dubai.fonixapp.org:41192?security=reality&encryption=none&pbk=p8HqeoS_56Y8_M1fJgO8WOnULqUW7tva4sxOVsqH4C4&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=stackoverflow.com&sid=0014de#🇦🇪
