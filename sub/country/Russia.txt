@@ -1,4 +1,0 @@
-vless://a899129b-57f8-4141-92c9-a8b62ef71e45@s6.psnreality.ru:443?security=reality&encryption=none&pbk=CjKYVV5NW3khAVulNH5bF9RhLhmGbzd6aZ-UvyEAhWo&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=sun6-21.userapi.com&sid=e55b38ddb0b77c#🇷🇺
-vless://russia@russia.whitenet.online:443?security=reality&encryption=none&pbk=xdNyDss0OLTu3z6kcdg8X2wfTOLtmDTobE2on3vKe34&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=vk.com&sid=ab1cd2#🇷🇺
-vless://4a6de183-2ad3-456c-b420-feeac81f6257@51.250.28.39:443?mode=gun&security=reality&encryption=none&pbk=FCg2XiFJrpH-2XlELSSSyEC7zkeW29HOgp4rfrqXEAI&fp=chrome&type=grpc&serviceName=xyz&sni=cloudflare.com&sid=123abc#🇷🇺
-vless://953bcea6-dd81-4c9a-a20a-053805f48195@ru.ufavpn.ru:9443?path=%2Fupdate&security=tls&encryption=none&type=ws&sni=ger.ufavpn.ru#🇷🇺
