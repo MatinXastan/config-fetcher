@@ -1,0 +1,1 @@
+vless://ae33a896-6374-41d3-88c5-b2941e0d038c@152.53.115.178:22231?security=reality&encryption=none&pbk=gtur4bFCYQzGf7M6B40RpdBHl6g1epPNhJCMqKPoVng&headerType=none&fp=edge&spx=%2Fsinavm-sinavm&type=tcp&flow=xtls-rprx-vision&sni=at.ultima.foundation&sid=a9725715bf4c62ff#🇦🇹
