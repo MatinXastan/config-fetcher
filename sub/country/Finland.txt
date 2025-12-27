@@ -1,2 +1,0 @@
-vless://a888c6da-33b0-480c-a40a-0e94f4eb9c48@85.192.49.156:443?security=reality&encryption=none&pbk=mza5Hn1aolSz65qu-UwvBP3oesxMe25r11o4nxvikF0&headerType=none&fp=chrome&spx=%2Fsinavm-sinavm&type=tcp&flow=xtls-rprx-vision&sni=findmypackets.com&sid=d1579a8745398e34#🇫🇮
-vless://e79c5771-9940-4907-b1c7-6388ee75a08a@85.192.49.156:443?security=reality&encryption=none&pbk=mza5Hn1aolSz65qu-UwvBP3oesxMe25r11o4nxvikF0&headerType=none&fp=chrome&spx=%2Fsinavm&type=tcp&flow=xtls-rprx-vision&sni=findmypackets.com&sid=d1579a8745398e34#🇫🇮
