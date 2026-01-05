@@ -1,1 +1,0 @@
-trojan://xtA6WF92Itmhm9jfvXUH1MDVL@free-de-3.undef.network:443?type=raw&headerType=none&security=tls&sni=free-de-3.undef.network#free-de-3.undef.network
