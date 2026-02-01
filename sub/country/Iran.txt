@@ -1,0 +1,2 @@
+vless://4d9e1c30-481d-4cb7-9e94-1a24394de7f7@css.torplay.ir:443?security=tls&encryption=none&insecure=1&host=uptvs.com&headerType=http&fp=chrome&type=tcp&allowInsecure=1&sni=profile-660901.torplay.ir#🇮🇷
+vless://739b8e9b-f1da-449a-8bfe-bf7b102b7751@iran.zanbor.de:443?type=tcp&encryption=none&security=reality&pbk=arLM5x4jH1TT05yUjirGNCSDK9pSscqHQWg3rqdKA3Y&fp=firefox&sni=bitcommand.com&sid=b1459712&spx=%2F#Iran

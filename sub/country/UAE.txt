@@ -1,0 +1,1 @@
+vless://f47b5d3c-4051-476d-8280-89b1125b4467@154.90.55.174:443?encryption=none&amp;security=reality&amp;flow=xtls-rprx-vision&amp;type=tcp&amp;sni=aws.amazon.com&amp;pbk=wimys8nxAefdZ0dEMJ8v7R8sMjQ2Y-hX6H_p7uQPPDo&amp;fp=chrome#🇦🇪
